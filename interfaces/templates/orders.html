@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}مدیریت سفارشات - 3DShop{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-bold mb-6">مدیریت سفارشات</h1>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-2 text-right">شماره سفارش</th>
+                    <th class="px-4 py-2 text-right">کاربر</th>
+                    <th class="px-4 py-2 text-right">مبلغ</th>
+                    <th class="px-4 py-2 text-right">وضعیت</th>
+                    <th class="px-4 py-2 text-right">تاریخ</th>
+                    <th class="px-4 py-2 text-right">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="border-b">
+                    <td class="px-4 py-2">{{ order.order_number }}</td>
+                    <td class="px-4 py-2">{{ order.user.username }}</td>
+                    <td class="px-4 py-2">{{ order.total_amount|format_currency }}</td>
+                    <td class="px-4 py-2">
+                        <span class="px-2 py-1 rounded text-sm
+                            {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% elif order.status == 'paid' %}bg-blue-100 text-blue-800
+                            {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                            {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                            {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                            {% endif %}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-2">{{ order.created_at.strftime('%Y/%m/%d') }}</td>
+                    <td class="px-4 py-2">
+                        <a href="/admin/order/{{ order.id }}" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+﻿{% extends "base.html" %}
+
+{% block title %}نظرات {{ product.name }} - پیریما Shop 3D{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">نظرات {{ product.name }}</h1>
+        <a href="/product/{{ product.id }}" class="text-primary-600 hover:text-primary-800">
+            <i class="fas fa-arrow-right ml-2"></i> بازگشت به محصول
+        </a>
+    </div>
+    
+    <!-- میانگین امتیازات -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="flex items-center gap-6">
+            <div class="text-center">
+                <span class="text-5xl font-bold text-primary-600">{{ avg_rating }}</span>
+                <span class="text-gray-500">/ 5</span>
+                <div class="text-yellow-400 text-2xl mt-1">
+                    {% for i in range(avg_rating|round|int) %}
+                        <i class="fas fa-star"></i>
+                    {% endfor %}
+                    {% for i in range(5 - avg_rating|round|int) %}
+                        <i class="far fa-star"></i>
+                    {% endfor %}
+                </div>
+                <span class="text-sm text-gray-500">{{ reviews|length }} نظر</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- لیست نظرات -->
+    {% if reviews %}
+        {% for review in reviews %}
+        <div class="bg-white rounded-lg shadow p-6 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold">{{ review.user.username }}</span>
+                        {% if review.is_verified %}
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                            <i class="fas fa-check-circle ml-1"></i> خرید کرده
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="text-yellow-400 text-sm mt-1">
+                        {% for i in range(review.rating) %}
+                            <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% for i in range(5 - review.rating) %}
+                            <i class="far fa-star"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+                <span class="text-sm text-gray-500">{{ review.created_at.strftime('%Y/%m/%d') }}</span>
+            </div>
+            
+            {% if review.title %}
+            <h3 class="font-semibold mt-2">{{ review.title }}</h3>
+            {% endif %}
+            
+            <p class="text-gray-700 mt-2">{{ review.content }}</p>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="bg-white rounded-lg shadow p-8 text-center">
+            <i class="fas fa-comment text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">هنوز نظری برای این محصول ثبت نشده است!</p>
+            <a href="/product/{{ product.id }}/review" class="inline-block mt-4 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition">
+                اولین نفری باشید که نظر می‌دهید
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

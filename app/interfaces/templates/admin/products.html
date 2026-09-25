@@ -1,0 +1,57 @@
+﻿{% extends "base.html" %}
+{% block title %}مدیریت محصولات - پیریما Shop 3D{% endblock %}
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">مدیریت محصولات</h1>
+        <a href="/admin/products/create" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+            <i class="fas fa-plus ml-2"></i> محصول جدید
+        </a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-2 text-right">نام</th>
+                    <th class="px-4 py-2 text-right">قیمت</th>
+                    <th class="px-4 py-2 text-right">موجودی</th>
+                    <th class="px-4 py-2 text-right">دسته‌بندی</th>
+                    <th class="px-4 py-2 text-right">وضعیت</th>
+                    <th class="px-4 py-2 text-right">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-2">{{ product.name }}</td>
+                    <td class="px-4 py-2">{{ product.price|format_currency }}</td>
+                    <td class="px-4 py-2">{{ product.quantity }}</td>
+                    <td class="px-4 py-2">{{ product.category.name if product.category else '-' }}</td>
+                    <td class="px-4 py-2">
+                        {% if product.is_available %}
+                            <span class="text-green-600">موجود</span>
+                        {% else %}
+                            <span class="text-red-600">ناموجود</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex gap-2">
+                            <a href="/admin/products/edit/{{ product.id }}" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="/admin/products/delete/{{ product.id }}" method="POST" 
+                                  onsubmit="return confirm('آیا از حذف این محصول مطمئن هستید؟')">    
+                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

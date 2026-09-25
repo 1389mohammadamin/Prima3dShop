@@ -1,0 +1,121 @@
+﻿{% extends "base.html" %}
+
+{% block title %}تایید پرداخت - پیریما Shop 3D{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- هدر -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+            <h1 class="text-2xl font-bold">✅ تکمیل پرداخت</h1>
+            <p class="opacity-90 mt-1">سفارش شما ثبت شد، برای تکمیل خرید لطفاً مبلغ را واریز کنید.</p>
+        </div>
+        
+        <div class="p-6">
+            <!-- اطلاعات سفارش -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">شماره سفارش</p>
+                        <p class="font-bold text-lg">{{ order.order_number }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">تاریخ ثبت</p>
+                        <p class="font-bold">{{ order.created_at.strftime('%Y/%m/%d %H:%M') }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- مبلغ قابل پرداخت -->
+            <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 mb-6 text-center">
+                <p class="text-sm text-yellow-800 mb-2">💰 مبلغ قابل پرداخت</p>
+                <p class="text-4xl font-bold text-blue-600">{{ order.total_amount|format_currency }}</p>
+            </div>
+            
+            <!-- اطلاعات حساب -->
+            <div class="bg-blue-50 rounded-lg p-6 mb-6">
+                <h3 class="font-bold text-blue-800 mb-4">🏦 اطلاعات حساب برای واریز</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center border-b border-blue-200 pb-2">
+                        <span class="text-gray-600">شماره حساب:</span>
+                        <span class="font-bold text-blue-800">IR01 0120 0000 0000 0000 0000 00</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-blue-200 pb-2">
+                        <span class="text-gray-600">شماره شبا:</span>
+                        <span class="font-bold text-blue-800">IR70 0170 0000 0000 0000 0000 00</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-blue-200 pb-2">
+                        <span class="text-gray-600">نام صاحب حساب:</span>
+                        <span class="font-bold text-blue-800">پیریما Shop 3D</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">بانک:</span>
+                        <span class="font-bold text-blue-800">بانک ملی ایران</span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-yellow-100 rounded-lg text-sm text-yellow-800">
+                    <i class="fas fa-info-circle ml-2"></i>
+                    پس از واریز، لطفاً رسید را در فرم زیر ارسال کنید.
+                </div>
+            </div>
+            
+            <!-- فرم تایید پرداخت -->
+            <div class="border-t pt-6">
+                <h3 class="font-bold text-gray-700 mb-4">📤 ارسال رسید واریز</h3>
+                
+                <form method="POST" action="/payment/confirm/{{ order.id }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2 font-medium">شماره پیگیری واریز *</label>
+                        <input type="text" name="tracking_number" required
+                               placeholder="شماره پیگیری را وارد کنید..."
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2 font-medium">توضیحات (اختیاری)</label>
+                        <textarea name="description" rows="3"
+                                  placeholder="توضیحات اضافی..."
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    
+                    <!-- قوانین و تعهدنامه -->
+                    <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="flex items-start mb-2">
+                            <input type="checkbox" name="accept_terms" required class="mt-1 ml-2">
+                            <span class="text-sm text-gray-600">
+                                <strong>تعهدنامه:</strong> 
+                                مبلغ فوق را به حساب اعلام شده واریز کرده‌ام و رسید آن را ارسال می‌کنم. 
+                                در صورت عدم تطابق اطلاعات، سفارش من لغو خواهد شد.
+                            </span>
+                        </div>
+                        <div class="flex items-start">
+                            <input type="checkbox" name="accept_terms_2" required class="mt-1 ml-2">
+                            <span class="text-sm text-gray-600">
+                                با <a href="/terms" target="_blank" class="text-blue-600 hover:underline">قوانین و مقررات</a> 
+                                سایت موافقت دارم.
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
+                        <i class="fas fa-check ml-2"></i>
+                        تایید و ارسال رسید
+                    </button>
+                </form>
+            </div>
+            
+            <div class="mt-6 pt-6 border-t">
+                <a href="/profile" class="text-blue-600 hover:text-blue-800 transition">
+                    <i class="fas fa-arrow-right ml-2"></i>
+                    بازگشت به پروفایل
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

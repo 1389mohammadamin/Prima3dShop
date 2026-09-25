@@ -1,0 +1,66 @@
+﻿{% extends "base.html" %}
+
+{% block title %}مدیریت تخفیف‌ها - پیریما Shop 3D{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">مدیریت تخفیف‌های ویژه</h1>
+        <a href="/admin/products" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <i class="fas fa-plus ml-2"></i> مدیریت محصولات
+        </a>
+    </div>
+    
+    <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <p class="text-sm text-blue-800">
+            <i class="fas fa-info-circle ml-2"></i>
+            برای اعمال تخفیف روی یک محصول، به صفحه مدیریت محصولات بروید و قیمت با تخفیف را وارد کنید.
+        </p>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-3 text-right">نام محصول</th>
+                    <th class="px-4 py-3 text-right">قیمت اصلی</th>
+                    <th class="px-4 py-3 text-right">قیمت با تخفیف</th>
+                    <th class="px-4 py-3 text-right">تخفیف</th>
+                    <th class="px-4 py-3 text-right">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-3">{{ product.name }}</td>
+                    <td class="px-4 py-3">{{ product.price|format_currency }}</td>
+                    <td class="px-4 py-3">
+                        {% if product.discount_price and product.discount_price < product.price %}
+                            <span class="text-red-600 font-bold">{{ product.discount_price|format_currency }}</span>
+                        {% else %}
+                            <span class="text-gray-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if product.discount_price and product.discount_price < product.price %}
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-bold">
+                                {{ ((product.price - product.discount_price) / product.price * 100)|round|int }}%
+                            </span>
+                        {% else %}
+                            <span class="text-gray-400">بدون تخفیف</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <a href="/admin/products/edit/{{ product.id }}" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-edit"></i> ویرایش
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+

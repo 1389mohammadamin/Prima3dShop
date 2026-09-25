@@ -1,0 +1,150 @@
+@"
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}3DShop{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
+                            300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6',
+                            600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-primary-600"> پیریما </a>
+                    <div class="hidden md:flex mr-10 space-x-4">
+                        <a href="/" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">خانه</a>
+                        <a href="/products" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">محصولات</a>
+                        <a href="/about" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">درباره ما</a>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- سبد خرید -->
+                    <a href="/cart" class="relative text-gray-700 hover:text-primary-600">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </a>
+                    
+                    <!-- کاربر -->
+                    {% if current_user.is_authenticated %}
+                    <div class="relative group">
+                        <button class="flex items-center text-gray-700 hover:text-primary-600">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                            <span class="mr-2">{{ current_user.username }}</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-50">
+                            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">پروفایل</a>
+                            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">سفارشات</a>
+                            {% if current_user.is_admin %}
+                            <div class="border-t border-gray-200"></div>
+                            <div class="px-4 py-2 text-xs text-gray-400">مدیریت</div>
+                            <a href="/admin" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">داشبورد</a>
+                            <a href="/admin/products" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">محصولات</a>
+                            <a href="/admin/categories" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">دسته‌بندی‌ها</a>
+                            <a href="/admin/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">سفارشات</a>
+                            <a href="/admin/users" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">کاربران</a>
+                            {% endif %}
+                            <div class="border-t border-gray-200"></div>
+                            <a href="/auth/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">خروج</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="/auth/login" class="text-gray-700 hover:text-primary-600">ورود</a>
+                    <a href="/auth/register" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">ثبت‌نام</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 mt-4">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-lg mb-2 {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="text-center">
+                <p>© 2026 3DShop - تمامی حقوق محفوظ است</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- در بخش head، بعد از لینک CSS، این رو اضافه کنید -->
+<script>
+    // ===== تنظیم تم بر اساس localStorage =====
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.textContent = '☀️';
+        }
+    });
+    
+    function toggleTheme() {
+        const html = document.documentElement;
+        const icon = document.getElementById('theme-icon');
+        const currentTheme = html.getAttribute('data-theme');
+        
+        if (currentTheme === 'dark') {
+            html.removeAttribute('data-theme');
+            if (icon) icon.textContent = '🌙';
+            localStorage.setItem('theme', 'light');
+        } else {
+            html.setAttribute('data-theme', 'dark');
+            if (icon) icon.textContent = '☀️';
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+</script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</body>
+    <!-- Announcement Bar -->
+    {% if announcement %}
+    <div class="bg-blue-600 text-white py-2 px-4 text-center text-sm font-medium">
+        <i class="fas fa-bullhorn ml-2"></i>
+        {{ announcement }}
+        {% if announcement_link %}
+        <a href="{{ announcement_link }}" class="text-white underline ml-2 hover:text-blue-200">اطلاعات بیشتر</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</html>
+"@ | Out-File -FilePath "app\interfaces\templates\base.html" -Encoding UTF8

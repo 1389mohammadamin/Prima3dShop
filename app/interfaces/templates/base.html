@@ -1,0 +1,385 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}پیریما Shop 3D{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* ===== منوی همبرگری ===== */
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            padding: 16px 0;
+        }
+        .mobile-menu.active {
+            display: flex;
+        }
+        .mobile-menu a {
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+        .mobile-menu a:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .hamburger span {
+            display: block;
+            width: 28px;
+            height: 3px;
+            background: var(--text-primary);
+            border-radius: 3px;
+            transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 6px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -6px);
+        }
+        
+        @media (max-width: 768px) {
+            .desktop-menu { display: none !important; }
+            .hamburger { display: flex !important; }
+        }
+        
+        /* ===== کارت‌های محصولات ===== */
+        .product-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary);
+        }
+        .product-card .card-image {
+            height: 200px;
+            overflow: hidden;
+            background: var(--primary-light);
+        }
+        .product-card .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .product-card:hover .card-image img {
+            transform: scale(1.05);
+        }
+        
+        /* ===== دکمه‌ها ===== */
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(37, 99, 235, 0.4);
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        /* ===== انیمیشن‌ها ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
+        .scale-in { animation: scaleIn 0.5s ease forwards; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        
+        /* ===== فوتر ===== */
+        .footer {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 40px;
+        }
+        .footer a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .footer a:hover {
+            color: white;
+        }
+        .footer .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transition: var(--transition);
+        }
+        .footer .social-icon:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        /* ===== تم دارک ===== */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --primary-gradient: linear-gradient(135deg, #2563eb, #7c3aed);
+            --shadow: 0 4px 24px rgba(0,0,0,0.06);
+            --shadow-hover: 0 12px 48px rgba(0,0,0,0.10);
+            --radius: 16px;
+            --transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Announcement Bar -->
+    {% if announcement %}
+    <div class="bg-blue-600 text-white py-2 px-4 text-center text-sm font-medium">
+        <i class="fas fa-bullhorn ml-2"></i>
+        {{ announcement }}
+        {% if announcement_link %}
+        <a href="{{ announcement_link }}" class="text-white underline ml-2 hover:text-blue-200">اطلاعات بیشتر</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-blue-600">پیریما Shop 3D</a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="desktop-menu hidden md:flex items-center space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 transition">خانه</a>
+                    <a href="/products" class="text-gray-700 hover:text-blue-600 transition">محصولات</a>
+                    <a href="/about" class="text-gray-700 hover:text-blue-600 transition">درباره ما</a>
+                </div>
+                
+                <!-- Right Section -->
+                <div class="flex items-center space-x-4">
+                    <!-- Cart -->
+                    <a href="/cart" class="relative text-gray-700 hover:text-blue-600 transition">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </a>
+                    
+                    <!-- User Menu -->
+                    {% if current_user.is_authenticated %}
+                    <div class="relative group">
+                        <button class="flex items-center text-gray-700 hover:text-blue-600 transition">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                            <span class="mr-2 hidden sm:inline">{{ current_user.username }}</span>
+                            <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
+                        </button>
+                        <div class="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:translate-y-0 translate-y-2 z-50">
+                            <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition rounded-t-xl">پروفایل</a>
+                            <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">سفارشات</a>
+                            {% if current_user.is_admin %}
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <div class="px-4 py-2 text-xs text-gray-400 font-bold">مدیریت</div>
+                            <a href="/admin" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">داشبورد</a>
+                            <a href="/admin/products" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">محصولات</a>
+                            <a href="/admin/categories" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">دسته‌بندی‌ها</a>
+                            <a href="/admin/orders" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">سفارشات</a>
+                            <a href="/admin/coupons" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">کدهای تخفیف</a>
+                            <a href="/admin/announcement" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition rounded-b-xl">اعلان سراسری</a>
+                            <a href="/admin/payment-confirmations" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">تایید پرداخت‌ها</a>
+                            {% endif %}
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <a href="/auth/logout" class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition rounded-b-xl">خروج</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="/auth/login" class="text-gray-700 hover:text-blue-600 transition hidden sm:inline">ورود</a>
+                    <a href="/auth/register" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">ثبت‌نام</a>
+                    {% endif %}
+                    
+                    <!-- Hamburger Menu (Mobile) -->
+                    <button class="hamburger md:hidden" onclick="toggleMobileMenu()" aria-label="منو">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div class="mobile-menu md:hidden" id="mobileMenu">
+                <a href="/">خانه</a>
+                <a href="/products">محصولات</a>
+                <a href="/about">درباره ما</a>
+                {% if not current_user.is_authenticated %}
+                <a href="/auth/login">ورود</a>
+                {% endif %}
+                {% if current_user.is_admin %}
+                <div class="border-t border-gray-200 my-2"></div>
+                <a href="/admin" class="text-blue-600">پنل مدیریت</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 mt-4">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-lg mb-2 {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- About -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">پیریما Shop 3D</h3>
+                    <p class="text-gray-400 text-sm">پیریما Shop 3D؛ لمسِ خلاقیت</p>
+                    <div class="flex space-x-3 mt-4">
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-telegram"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">دسترسی سریع</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/">خانه</a></li>
+                        <li><a href="/products">محصولات</a></li>
+                        <li><a href="/about">درباره ما</a></li>
+                        <li><a href="/contact">تماس با ما</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Help -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">راهنمای خرید</h4>
+                                        <ul class="space-y-2 text-sm">
+                        <li><a href="/terms">قوانین و مقررات</a></li>
+                        <li><a href="/privacy">حریم خصوصی</a></li>
+                        <li><a href="#">روش‌های ارسال</a></li>
+                        <li><a href="#">ضمانت کیفیت</a></li>
+                    </ul>
+                        <li><a href="#">روش‌های ارسال</a></li>
+                        <li><a href="#">روش‌های پرداخت</a></li>
+                        <li><a href="#">ضمانت کیفیت</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">ارتباط با ما</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><i class="fas fa-phone ml-2"></i> 09945553206</li>
+                        <li><i class="fas fa-envelope ml-2"></i>Prima3dShop@vatanmail.ir</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>© 2026 پیریما Shop 3D - تمامی حقوق مادی و معنوی محفوظ است</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // ===== منوی همبرگری =====
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const hamburger = document.querySelector('.hamburger');
+            menu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        }
+        
+        // ===== بستن منو با کلیک خارج =====
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobileMenu');
+            const hamburger = document.querySelector('.hamburger');
+            const nav = document.querySelector('nav');
+            if (!nav.contains(event.target)) {
+                menu.classList.remove('active');
+                hamburger.classList.remove('active');
+            }
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</body>
+</html>
+
+
+
+

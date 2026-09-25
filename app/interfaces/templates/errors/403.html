@@ -1,0 +1,26 @@
+﻿{% extends "base.html" %}
+
+{% block title %}دسترسی غیرمجاز - 403{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center">
+    <div class="text-center">
+        <div class="text-9xl font-bold text-gray-300">403</div>
+        <div class="text-6xl mb-4">🚫</div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">دسترسی غیرمجاز!</h1>
+        <p class="text-gray-600 mb-8">شما به این صفحه دسترسی ندارید. لطفاً با مدیر سایت تماس بگیرید.</p>
+        <div class="flex justify-center gap-4">
+            <a href="/" class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition">
+                <i class="fas fa-home ml-2"></i>
+                بازگشت به خانه
+            </a>
+            <a href="/auth/login" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition">
+                <i class="fas fa-sign-in-alt ml-2"></i>
+                ورود به حساب
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

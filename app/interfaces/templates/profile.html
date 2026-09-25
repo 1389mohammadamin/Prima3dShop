@@ -1,0 +1,84 @@
+﻿{% extends "base.html" %}
+
+{% block title %}پروفایل - پیریما Shop 3D{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">پروفایل کاربر</h1>
+    
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4">اطلاعات کاربری</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-sm text-gray-500">نام کاربری</p>
+                <p class="font-medium">{{ current_user.username }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">ایمیل</p>
+                <p class="font-medium">{{ current_user.email }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">نام کامل</p>
+                <p class="font-medium">{{ current_user.full_name or 'ثبت نشده' }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">تعداد سفارشات</p>
+                <p class="font-medium">{{ orders|length }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="text-xl font-bold mb-4">تاریخچه سفارشات</h2>
+    
+    {% if orders %}
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-3 text-right">شماره سفارش</th>
+                    <th class="px-4 py-3 text-right">تاریخ</th>
+                    <th class="px-4 py-3 text-right">مبلغ</th>
+                    <th class="px-4 py-3 text-right">وضعیت</th>
+                    <th class="px-4 py-3 text-right">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-3">{{ order.order_number }}</td>
+                    <td class="px-4 py-3">{{ order.created_at.strftime('%Y/%m/%d') }}</td>
+                    <td class="px-4 py-3">{{ order.total_amount|format_currency }}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded text-sm
+                            {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% elif order.status == 'paid' %}bg-blue-100 text-blue-800
+                            {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                            {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                            {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                            {% endif %}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <a href="/order/{{ order.id }}" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-eye"></i> مشاهده
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow p-8 text-center">
+        <i class="fas fa-shopping-bag text-6xl text-gray-300 mb-4"></i>
+        <p class="text-gray-500">شما هنوز سفارشی ثبت نکرده‌اید!</p>
+        <a href="/products" class="inline-block mt-4 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition">
+            شروع خرید
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

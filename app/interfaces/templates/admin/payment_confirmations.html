@@ -1,0 +1,63 @@
+﻿{% extends "base.html" %}
+{% block title %}تایید پرداخت‌ها - پیریما Shop 3D{% endblock %}
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-bold mb-6">تایید پرداخت‌ها</h1>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-2 text-right">سفارش</th>
+                    <th class="px-4 py-2 text-right">کاربر</th>
+                    <th class="px-4 py-2 text-right">مبلغ</th>
+                    <th class="px-4 py-2 text-right">شماره پیگیری</th>
+                    <th class="px-4 py-2 text-right">وضعیت</th>
+                    <th class="px-4 py-2 text-right">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conf in confirmations %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-2">
+                        <a href="/admin/order/{{ conf.order.id }}" class="text-blue-600 hover:underline">
+                            {{ conf.order.order_number }}
+                        </a>
+                    </td>
+                    <td class="px-4 py-2">{{ conf.user.username }}</td>
+                    <td class="px-4 py-2">{{ conf.order.total_amount|format_currency }}</td>
+                    <td class="px-4 py-2 font-mono">{{ conf.tracking_number }}</td>
+                    <td class="px-4 py-2">
+                        {% if conf.status == 'pending' %}
+                            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm">در انتظار</span>
+                        {% elif conf.status == 'approved' %}
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">تایید شده</span>
+                        {% else %}
+                            <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">رد شده</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                        {% if conf.status == 'pending' %}
+                        <div class="flex gap-2">
+                            <form action="/admin/payment-confirmation/{{ conf.id }}/approve" method="POST">
+                                <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition text-sm">
+                                    <i class="fas fa-check"></i> تایید
+                                </button>
+                            </form>
+                            <form action="/admin/payment-confirmation/{{ conf.id }}/reject" method="POST">
+                                <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition text-sm">
+                                    <i class="fas fa-times"></i> رد
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <span class="text-sm text-gray-400">تکمیل شده</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

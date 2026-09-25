@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}سبد خرید - 3DShop{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">🛒 سبد خرید</h1>
+
+    <!-- دیباگ خیلی ساده -->
+    <div style="background:#ffe0e0;padding:10px;border:2px solid red;margin-bottom:15px;direction:ltr;text-align:left;font-size:13px;">
+        <strong>🔍 DEBUG:</strong><br>
+        cart_items count: {{ cart_items|length }}<br>
+        cart_items raw: <pre>{{ cart_items }}</pre>
+    </div>
+
+    {% if cart_items %}
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            {% for item in cart_items %}
+            <div class="p-6 flex flex-col md:flex-row items-center gap-4 border-b">
+                <div class="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
+                    <i class="fas fa-cube text-3xl text-gray-400"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-semibold">{{ item.product.name }}</h3>
+                    <p class="text-sm text-gray-500">{{ item.product.price|format_currency }}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <form action="/update-cart-item/{{ item.product.id }}" method="POST" class="flex items-center gap-2">
+                        <input type="number" name="quantity" value="{{ item.quantity }}" 
+                               min="1" max="{{ item.product.quantity }}"
+                               class="w-16 px-2 py-1 border border-gray-300 rounded text-center">
+                        <button type="submit" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="font-bold text-primary-600 min-w-[100px] text-center">
+                    {{ item.item_total|format_currency }}
+                </div>
+                <form action="/remove-from-cart/{{ item.product.id }}" method="POST">
+                    <button type="submit" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+
+            <div class="p-6 bg-gray-50">
+                <div class="flex justify-between items-center">
+                    <span class="text-lg font-bold">جمع کل:</span>
+                    <span class="text-2xl font-bold text-primary-600">{{ total_price|format_currency }}</span>
+                </div>
+                <div class="mt-4 flex flex-col sm:flex-row gap-4">
+                    <a href="/checkout" class="flex-1 bg-primary-600 text-white text-center px-6 py-3 rounded-lg hover:bg-primary-700 transition">
+                        <i class="fas fa-check ml-2"></i> تسویه حساب
+                    </a>
+                    <a href="/products" class="flex-1 bg-gray-200 text-gray-700 text-center px-6 py-3 rounded-lg hover:bg-gray-300 transition">
+                        <i class="fas fa-shopping-bag ml-2"></i> ادامه خرید
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-white rounded-lg shadow p-12 text-center">
+            <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">سبد خرید شما خالی است!</p>
+            <a href="/products" class="inline-block mt-4 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition">
+                شروع خرید
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

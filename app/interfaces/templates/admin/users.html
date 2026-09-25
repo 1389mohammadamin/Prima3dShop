@@ -1,0 +1,61 @@
+﻿{% extends "base.html" %}
+{% block title %}مدیریت کاربران - پیریما Shop 3D{% endblock %}
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-bold mb-6">مدیریت کاربران</h1>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-2 text-right">نام کاربری</th>
+                    <th class="px-4 py-2 text-right">ایمیل</th>
+                    <th class="px-4 py-2 text-right">نقش</th>
+                    <th class="px-4 py-2 text-right">وضعیت</th>
+                    <th class="px-4 py-2 text-right">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr class="border-b">
+                    <td class="px-4 py-2">{{ user.username }}</td>
+                    <td class="px-4 py-2">{{ user.email }}</td>
+                    <td class="px-4 py-2">
+                        {% if user.is_admin %}
+                            <span class="px-2 py-1 rounded text-sm bg-purple-100 text-purple-800">ادمین</span>
+                        {% else %}
+                            <span class="px-2 py-1 rounded text-sm bg-gray-100 text-gray-800">کاربر</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                        {% if user.is_active %}
+                            <span class="px-2 py-1 rounded text-sm bg-green-100 text-green-800">فعال</span>
+                        {% else %}
+                            <span class="px-2 py-1 rounded text-sm bg-red-100 text-red-800">غیرفعال</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex gap-2">
+                            {% if user.id != current_user.id %}
+                            <form action="/admin/users/toggle-admin/{{ user.id }}" method="POST">    
+                                <button type="submit" class="text-blue-600 hover:text-blue-800 text-sm">
+                                    {% if user.is_admin %}حذف ادمین{% else %}ادمین کن{% endif %}
+                                </button>
+                            </form>
+                            <form action="/admin/users/toggle-status/{{ user.id }}" method="POST">    
+                                <button type="submit" class="text-sm {% if user.is_active %}text-yellow-600 hover:text-yellow-800{% else %}text-green-600 hover:text-green-800{% endif %}">
+                                    {% if user.is_active %}غیرفعال{% else %}فعال{% endif %}
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-sm text-gray-400">خودتان</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

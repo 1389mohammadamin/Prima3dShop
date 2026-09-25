@@ -1,0 +1,64 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ product.name }} - پیریما Shop 3D{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="md:flex">
+            <!-- تصویر محصول -->
+            <div class="md:w-1/2 h-64 md:h-auto bg-gray-200 flex items-center justify-center overflow-hidden">
+                {% if product.image_url %}
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                {% else %}
+                    <i class="fas fa-cube text-8xl text-gray-400"></i>
+                {% endif %}
+            </div>
+            <!-- اطلاعات محصول -->
+            <div class="md:w-1/2 p-6">
+                <h1 class="text-2xl font-bold">{{ product.name }}</h1>
+                <p class="text-sm text-gray-500 mt-1">{{ product.category.name if product.category else 'بدون دسته' }}</p>
+                <div class="mt-4">
+                    {% if product.discount_price and product.discount_price < product.price %}
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <span class="text-2xl text-gray-400 line-through">{{ product.price|format_currency }}</span>
+                        <span class="text-3xl font-bold text-red-600">{{ product.discount_price|format_currency }}</span>
+                        <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                            {{ ((product.price - product.discount_price) / product.price * 100)|round|int }}% تخفیف
+                        </span>
+                    </div>
+                    {% else %}
+                    <span class="text-3xl font-bold text-blue-600">{{ product.price|format_currency }}</span>
+                    {% endif %}
+                </div>
+                <div class="mt-4">
+                    <span class="text-sm text-gray-500">موجودی: {{ product.quantity }} عدد</span>
+                </div>
+                <div class="mt-4">
+                    <p class="text-gray-700">{{ product.description }}</p>
+                </div>
+                {% if product.material %}
+                <div class="mt-4">
+                    <span class="text-sm text-gray-500">جنس: {{ product.material }}</span>
+                </div>
+                {% endif %}
+                <div class="mt-6">
+                    <form action="/add-to-cart/{{ product.id }}" method="POST">    
+                        <div class="flex items-center gap-4">
+                            <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
+                                   class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                            <button type="submit" 
+                                    class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-shopping-cart ml-2"></i>
+                                افزودن به سبد خرید
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+

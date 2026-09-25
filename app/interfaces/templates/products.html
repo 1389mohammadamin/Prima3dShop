@@ -1,0 +1,173 @@
+﻿{% extends "base.html" %}
+
+{% block title %}محصولات - پیریما Shop 3D{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row gap-8">
+    <!-- سایدبار فیلتر -->
+    <div class="md:w-1/4">
+        <div class="bg-white rounded-xl shadow p-6 sticky top-4">
+            <h3 class="text-lg font-bold mb-4">فیلترها</h3>
+            
+            <form method="GET" action="/products" id="filterForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">جستجو</label>
+                    <input type="text" name="search" value="{{ search }}" 
+                           placeholder="نام محصول..."
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">دسته‌بندی</label>
+                    <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">همه دسته‌ها</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if category_id == cat.id %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">محدوده قیمت (تومان)</label>
+                    <div class="flex gap-2">
+                        <input type="number" name="min_price" value="{{ min_price }}" 
+                               placeholder="از" min="0"
+                               class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" name="max_price" value="{{ max_price }}" 
+                               placeholder="تا" min="0"
+                               class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                {% if materials %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">جنس</label>
+                    <select name="material" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">همه</option>
+                        {% for m in materials %}
+                        <option value="{{ m }}" {% if material == m %}selected{% endif %}>
+                            {{ m }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">مرتب‌سازی</label>
+                    <select name="sort" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>جدیدترین</option>
+                        <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>قدیمی‌ترین</option>
+                        <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>ارزان‌ترین</option>
+                        <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>گران‌ترین</option>
+                        <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>الفبایی</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-filter ml-2"></i> اعمال فیلترها
+                </button>
+                
+                <a href="/products" class="block text-center mt-2 text-sm text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-undo ml-1"></i> بازنشانی
+                </a>
+            </form>
+        </div>
+    </div>
+    
+    <!-- لیست محصولات -->
+    <div class="md:w-3/4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">محصولات</h2>
+            <span class="text-sm text-gray-500">{{ products|length }} محصول</span>
+        </div>
+        
+        {% if products %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="card-image">
+                    {% if product.image_url %}
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="flex items-center justify-center h-full bg-gray-100">
+                            <i class="fas fa-cube text-5xl text-gray-300"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="p-4">
+                    <a href="/product/{{ product.id }}">
+                        <h3 class="font-semibold hover:text-blue-600 transition line-clamp-1">{{ product.name }}</h3>
+                    </a>
+                    <p class="text-sm text-gray-500 mt-1">{{ product.category.name if product.category else 'بدون دسته' }}</p>
+                    
+                    {% if product.reviews %}
+                    <div class="flex items-center mt-1">
+                        <div class="text-yellow-400 text-sm">
+                            {% set avg = product.reviews|map(attribute='rating')|sum / product.reviews|length %}
+                            {% for i in range(avg|round|int) %}
+                                <i class="fas fa-star"></i>
+                            {% endfor %}
+                            {% for i in range(5 - avg|round|int) %}
+                                <i class="far fa-star"></i>
+                            {% endfor %}
+                        </div>
+                        <span class="text-xs text-gray-500 mr-1">({{ product.reviews|length }})</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex justify-between items-center mt-4">
+                        {% if product.discount_price and product.discount_price < product.price %}
+                        <div class="flex flex-col">
+                            <span class="text-sm text-gray-400 line-through">{{ product.price|format_currency }}</span>
+                            <span class="text-xl font-bold text-red-600">{{ product.discount_price|format_currency }}</span>
+                        </div>
+                        {% else %}
+                        <span class="text-xl font-bold text-blue-600">{{ product.price|format_currency }}</span>
+                        {% endif %}
+                        <span class="text-sm text-gray-500">{{ product.quantity }} عدد</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl shadow p-12 text-center">
+            <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">هیچ محصولی با این فیلترها یافت نشد!</p>
+            <a href="/products" class="inline-block mt-4 text-blue-600 hover:text-blue-800">
+                <i class="fas fa-undo ml-1"></i> نمایش همه محصولات
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // ارسال خودکار فرم با تغییر هر فیلد
+    document.addEventListener('DOMContentLoaded', function() {
+        const selects = document.querySelectorAll('#filterForm select');
+        const priceInputs = document.querySelectorAll('#filterForm input[type="number"]');
+        
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        });
+        
+        let timeout;
+        priceInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    document.getElementById('filterForm').submit();
+                }, 500);
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+

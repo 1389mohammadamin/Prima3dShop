@@ -1,0 +1,130 @@
+﻿{% extends "base.html" %}
+
+{% block title %}پیریما Shop 3D - فروشگاه لمسِ خلاقیت{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white text-center mb-12 fade-in-up">
+    <h1 class="text-3xl md:text-5xl font-bold mb-4">به پیریما Shop 3D خوش آمدید</h1>
+    <p class="text-lg md:text-xl opacity-90 max-w-2xl mx-auto mb-6">پیریما Shop 3D؛ لمسِ خلاقیت و قیمت مناسب</p>
+    <div class="flex flex-wrap justify-center gap-4">
+        <a href="/products" class="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1">شروع خرید</a>
+        <a href="/about" class="bg-white/20 backdrop-blur text-white px-8 py-3 rounded-full font-semibold border border-white/30 hover:bg-white/30 transition transform hover:-translate-y-1">بیشتر بدانید</a>
+    </div>
+</section>
+
+<!-- آمار -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12 fade-in-up delay-1">
+    <div class="bg-white rounded-xl shadow p-4 md:p-6 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+        <div class="text-2xl md:text-3xl font-bold text-blue-600">۱۰۰+</div>
+        <div class="text-gray-500 text-sm">محصولات</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-4 md:p-6 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+        <div class="text-2xl md:text-3xl font-bold text-green-600">۵۰۰+</div>
+        <div class="text-gray-500 text-sm">مشتریان</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-4 md:p-6 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+        <div class="text-2xl md:text-3xl font-bold text-yellow-600">۴.۸</div>
+        <div class="text-gray-500 text-sm">میانگین امتیاز</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-4 md:p-6 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+        <div class="text-2xl md:text-3xl font-bold text-purple-600">۲۴/۷</div>
+        <div class="text-gray-500 text-sm">پشتیبانی</div>
+    </div>
+</div>
+
+<!-- پرفروش‌ترین محصولات -->
+{% if best_sellers %}
+<section class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2">🔥 پرفروش‌ترین محصولات</h2>
+        <a href="/products" class="text-blue-600 hover:text-blue-800 text-sm font-medium">مشاهده همه</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+        {% for product in best_sellers %}
+        <div class="product-card fade-in-up delay-{{ loop.index % 4 + 1 }}">
+            <div class="card-image">
+                {% if product.image_url %}
+                <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                {% else %}
+                <div class="flex items-center justify-center h-full bg-gray-100">
+                    <i class="fas fa-cube text-5xl text-gray-300"></i>
+                </div>
+                {% endif %}
+            </div>
+            <div class="p-3 md:p-4">
+                <a href="/product/{{ product.id }}">
+                    <h3 class="font-semibold text-sm md:text-base hover:text-blue-600 transition line-clamp-1">{{ product.name }}</h3>
+                </a>
+                <div class="flex justify-between items-center mt-2">
+                    <span class="text-sm md:text-lg font-bold text-blue-600">{{ product.price|format_currency }}</span>
+                    <span class="text-xs text-gray-400">{{ product.sales_count }} فروش</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- جدیدترین محصولات -->
+{% if latest_products %}
+<section class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2">✨ جدیدترین محصولات</h2>
+        <a href="/products" class="text-blue-600 hover:text-blue-800 text-sm font-medium">مشاهده همه</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        {% for product in latest_products %}
+        <div class="product-card scale-in delay-{{ loop.index % 4 + 1 }}">
+            <div class="card-image">
+                {% if product.image_url %}
+                <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                {% else %}
+                <div class="flex items-center justify-center h-full bg-gray-100">
+                    <i class="fas fa-cube text-5xl text-gray-300"></i>
+                </div>
+                {% endif %}
+            </div>
+            <div class="p-3 md:p-4">
+                <a href="/product/{{ product.id }}">
+                    <h3 class="font-semibold text-sm md:text-base hover:text-blue-600 transition line-clamp-1">{{ product.name }}</h3>
+                </a>
+                <div class="flex justify-between items-center mt-2">
+                    <span class="text-sm md:text-lg font-bold text-blue-600">{{ product.price|format_currency }}</span>
+                    <span class="text-xs text-gray-400">{{ product.quantity }} عدد</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- مزایا -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-cube text-2xl text-blue-600"></i>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">لمسِ خلاقیت</h3>
+        <p class="text-gray-500 text-sm">محصولات با کیفیت بالا با تکنولوژی روز</p>
+    </div>
+    <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-truck text-2xl text-green-600"></i>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">ارسال سریع</h3>
+        <p class="text-gray-500 text-sm">ارسال به سراسر کشور در کمترین زمان</p>
+    </div>
+    <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-shield-alt text-2xl text-purple-600"></i>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">ضمانت کیفیت</h3>
+        <p class="text-gray-500 text-sm">ضمانت بازگشت وجه در صورت عدم رضایت</p>
+    </div>
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - 3DShop{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="md:flex">
+            <!-- تصویر محصول -->
+            <div class="md:w-1/2 h-64 md:h-auto bg-gray-200 flex items-center justify-center">
+                <i class="fas fa-cube text-8xl text-gray-400"></i>
+            </div>
+            
+            <!-- اطلاعات محصول -->
+            <div class="md:w-1/2 p-6">
+                <h1 class="text-2xl font-bold">{{ product.name }}</h1>
+                <p class="text-sm text-gray-500 mt-1">{{ product.category.name if product.category else 'بدون دسته' }}</p>
+                
+                <div class="mt-4">
+                    <span class="text-2xl font-bold text-primary-600">{{ product.price|format_currency }}</span>
+                </div>
+                
+                <div class="mt-4">
+                    <span class="text-sm text-gray-500">موجودی: {{ product.quantity }} عدد</span>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-gray-700">{{ product.description }}</p>
+                </div>
+                
+                {% if product.material %}
+                <div class="mt-4">
+                    <span class="text-sm text-gray-500">جنس: {{ product.material }}</span>
+                </div>
+                {% endif %}
+
+                <!-- بخش نظرات در product_detail.html -->
+<div class="mt-8">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold">نظرات</h3>
+        <a href="/product/{{ product.id }}/reviews" class="text-primary-600 hover:text-primary-800 text-sm">
+            مشاهده همه
+        </a>
+    </div>
+    
+    {% if product.reviews %}
+    <div class="bg-white rounded-lg shadow p-4">
+        <!-- نمایش ۳ نظر آخر -->
+        {% for review in product.reviews[:3] %}
+        <div class="border-b last:border-0 py-3">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="font-semibold">{{ review.user.username }}</span>
+                    <div class="text-yellow-400 text-sm">
+                        {% for i in range(review.rating) %}
+                            <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% for i in range(5 - review.rating) %}
+                            <i class="far fa-star"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+                <span class="text-xs text-gray-500">{{ review.created_at.strftime('%Y/%m/%d') }}</span>
+            </div>
+            {% if review.title %}
+            <p class="font-semibold text-sm mt-1">{{ review.title }}</p>
+            {% endif %}
+            <p class="text-gray-600 text-sm mt-1">{{ review.content[:150] }}{% if review.content|length > 150 %}...{% endif %}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow p-4 text-center text-gray-500">
+        <p>هیچ نظری برای این محصول ثبت نشده است.</p>
+    </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="/product/{{ product.id }}/review" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition text-sm">
+            <i class="fas fa-pen ml-2"></i> نوشتن نظر
+        </a>
+    </div>
+</div>
+                
+                <div class="mt-6">
+                    <form action="/add-to-cart/{{ product.id }}" method="POST">
+                        <div class="flex items-center gap-4">
+                            <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
+                                   class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">
+                            <button type="submit" 
+                                    class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition">
+                                <i class="fas fa-shopping-cart ml-2"></i>
+                                افزودن به سبد خرید
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

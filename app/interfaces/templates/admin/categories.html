@@ -1,0 +1,56 @@
+﻿{% extends "base.html" %}
+{% block title %}مدیریت دسته‌بندی‌ها - پیریما Shop 3D{% endblock %}
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">مدیریت دسته‌بندی‌ها</h1>
+        <button onclick="document.getElementById('addCategoryForm').classList.toggle('hidden')"
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+            <i class="fas fa-plus ml-2"></i> دسته‌بندی جدید
+        </button>
+    </div>
+    <!-- فرم افزودن -->
+    <div id="addCategoryForm" class="hidden mb-6 p-4 bg-gray-50 rounded-lg">
+        <form action="/admin/categories/create" method="POST" class="flex items-center gap-4">    
+            <input type="text" name="name" placeholder="نام دسته‌بندی" required
+                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">
+            <input type="text" name="description" placeholder="توضیحات (اختیاری)"
+                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">
+            <button type="submit" class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition">
+                <i class="fas fa-check ml-2"></i> افزودن
+            </button>
+        </form>
+    </div>
+    <!-- لیست دسته‌بندی‌ها -->
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-2 text-right">نام</th>
+                    <th class="px-4 py-2 text-right">slug</th>
+                    <th class="px-4 py-2 text-right">توضیحات</th>
+                    <th class="px-4 py-2 text-right">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr class="border-b">
+                    <td class="px-4 py-2">{{ category.name }}</td>
+                    <td class="px-4 py-2 text-sm text-gray-500">{{ category.slug }}</td>
+                    <td class="px-4 py-2 text-sm">{{ category.description or '-' }}</td>
+                    <td class="px-4 py-2">
+                        <form action="/admin/categories/delete/{{ category.id }}" method="POST" 
+                              onsubmit="return confirm('آیا از حذف این دسته‌بندی مطمئن هستید؟')">    
+                            <button type="submit" class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,88 @@
+﻿{% extends "base.html" %}
+{% block title %}داشبورد مدیریت - پیریما Shop 3D{% endblock %}
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold">پنل مدیریت</h1>
+        <span class="text-sm text-gray-500">
+            <i class="fas fa-calendar-alt ml-1"></i>
+            {{ now.strftime('%Y/%m/%d %H:%M') }}
+        </span>
+    </div>
+    <p class="text-gray-600 mb-6">خوش آمدید {{ current_user.full_name }}!</p>
+    <!-- کارت‌های آمار -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-blue-600">تعداد محصولات</p>
+                    <p class="text-2xl font-bold text-blue-800">{{ stats.total_products }}</p>
+                </div>
+                <i class="fas fa-boxes text-3xl text-blue-400"></i>
+            </div>
+            <a href="/admin/products" class="inline-block mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium">مدیریت محصولات →</a>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg border border-green-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">تعداد کاربران</p>
+                    <p class="text-2xl font-bold text-green-800">{{ stats.total_users }}</p>
+                </div>
+                <i class="fas fa-users text-3xl text-green-400"></i>
+            </div>
+            <a href="/admin/users" class="inline-block mt-2 text-green-600 hover:text-green-800 text-sm font-medium">مدیریت کاربران →</a>
+        </div>
+        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-purple-600">دسته‌بندی‌ها</p>
+                    <p class="text-2xl font-bold text-purple-800">{{ stats.total_categories }}</p>
+                </div>
+                <i class="fas fa-tags text-3xl text-purple-400"></i>
+            </div>
+            <a href="/admin/categories" class="inline-block mt-2 text-purple-600 hover:text-purple-800 text-sm font-medium">مدیریت دسته‌بندی →</a>
+        </div>
+        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-yellow-600">سفارشات</p>
+                    <p class="text-2xl font-bold text-yellow-800">{{ stats.total_orders }}</p>
+                </div>
+                <i class="fas fa-shopping-cart text-3xl text-yellow-400"></i>
+            </div>
+            <a href="/admin/orders" class="inline-block mt-2 text-yellow-600 hover:text-yellow-800 text-sm font-medium">مدیریت سفارشات →</a>
+        </div>
+    </div>
+    <!-- بخش‌های اضافی مدیریت -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- کدهای تخفیف -->
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-gray-700">کدهای تخفیف</h3>
+                <i class="fas fa-ticket-alt text-2xl text-blue-600"></i>
+            </div>
+            <p class="text-sm text-gray-600">مدیریت کدهای تخفیف و کوپن‌ها</p>
+            <a href="/admin/coupons" class="inline-block mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium">مدیریت کدها →</a>
+        </div>
+        <!-- اعلان سراسری -->
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-gray-700">اعلان سراسری</h3>
+                <i class="fas fa-bullhorn text-2xl text-blue-600"></i>
+            </div>
+            <p class="text-sm text-gray-600">مدیریت پیام‌های مهم سایت</p>
+            <a href="/admin/announcement" class="inline-block mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium">مدیریت اعلان →</a>
+        </div>
+        <!-- تخفیف محصولات -->
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-gray-700">تخفیف محصولات</h3>
+                <i class="fas fa-percent text-2xl text-blue-600"></i>
+            </div>
+            <p class="text-sm text-gray-600">مدیریت تخفیف‌های ویژه محصولات</p>
+            <a href="/admin/discounts" class="inline-block mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium">مدیریت تخفیف‌ها →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
