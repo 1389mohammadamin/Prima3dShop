@@ -1,0 +1,121 @@
+﻿detail_path = r'app\interfaces\templates\product_detail.html'
+
+html = '''{% extends "base.html" %}
+{% block title %}{{ product.name }} - Prima3dShop{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="md:flex">
+            <!-- تصویر -->
+            <div class="md:w-1/2 h-64 md:h-auto bg-gray-200 flex items-center justify-center overflow-hidden">
+                {% if product.image_url %}
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                {% else %}
+                    <i class="fas fa-cube text-8xl text-gray-400"></i>
+                {% endif %}
+            </div>
+
+            <!-- اطلاعات -->
+            <div class="md:w-1/2 p-6">
+                <h1 class="text-2xl font-bold">{{ product.name }}</h1>
+                <p class="text-sm text-gray-500 mt-1">{{ product.category.name if product.category else 'بدون دسته' }}</p>
+
+                <div class="mt-4">
+                    <span class="text-3xl font-bold text-emerald-600 current-price">{{ product.price|format_currency }}</span>
+                </div>
+
+                <div class="mt-4">
+                    <span class="text-sm text-gray-500">موجودی: {{ product.quantity }} عدد</span>
+                </div>
+
+                <div class="mt-4">
+                    <p class="text-gray-700">{{ product.description }}</p>
+                </div>
+
+                {% if product.material %}
+                <div class="mt-4">
+                    <span class="text-sm text-gray-500">جنس: {{ product.material }}</span>
+                </div>
+                {% endif %}
+
+                <!-- 🎨 تنوع رنگی -->
+                {% if product.variants %}
+                <div class="mt-6">
+                    <h4 class="font-semibold mb-3">انتخاب رنگ:</h4>
+                    <div class="flex gap-3 flex-wrap">
+                        {% for variant in product.variants %}
+                        <button onclick="selectVariant(this, '{{ variant.id }}', '{{ variant.value }}', {{ variant.price_adjustment }})"
+                                class="variant-btn px-4 py-2 border-2 border-gray-300 rounded-lg hover:border-emerald-500 transition flex items-center gap-2"
+                                data-variant-id="{{ variant.id }}">
+                            <span class="inline-block w-6 h-6 rounded-full border-2 border-gray-300 shadow-inner"
+                                  style="background-color: {{ variant.color_code or '#cccccc' }};"></span>
+                            <span>{{ variant.value }}</span>
+                            {% if variant.price_adjustment > 0 %}
+                            <span class="text-emerald-600 text-sm">+{{ variant.price_adjustment|format_currency }}</span>
+                            {% elif variant.price_adjustment < 0 %}
+                            <span class="text-red-600 text-sm">{{ variant.price_adjustment|format_currency }}</span>
+                            {% endif %}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 📊 مشخصات فنی -->
+                {% if product.specifications %}
+                <div class="mt-6">
+                    <h4 class="font-semibold mb-2">مشخصات فنی:</h4>
+                    <div class="bg-gray-50 rounded-lg overflow-hidden">
+                        <table class="w-full">
+                            {% for spec in product.specifications|sort(attribute='display_order') %}
+                            <tr class="border-b last:border-0">
+                                <td class="px-4 py-2 font-medium text-gray-600">{{ spec.spec_key }}</td>
+                                <td class="px-4 py-2 text-gray-800">{{ spec.spec_value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- فرم افزودن به سبد -->
+                <div class="mt-6">
+                    <form action="/add-to-cart/{{ product.id }}" method="POST">
+                        <input type="hidden" name="variant_id" id="selected_variant" value="">
+                        <div class="flex items-center gap-4">
+                            <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
+                                   class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500">
+                            <button type="submit" class="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition font-semibold">
+                                <i class="fas fa-shopping-cart ml-2"></i> افزودن به سبد خرید
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectVariant(btn, variantId, value, priceAdjustment) {
+        var buttons = document.querySelectorAll('.variant-btn');
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove('border-emerald-500', 'bg-emerald-50');
+            buttons[i].classList.add('border-gray-300');
+        }
+        btn.classList.remove('border-gray-300');
+        btn.classList.add('border-emerald-500', 'bg-emerald-50');
+
+        var hiddenInput = document.getElementById('selected_variant');
+        if (hiddenInput) {
+            hiddenInput.value = variantId;
+        }
+    }
+</script>
+{% endblock %}
+'''
+
+with open(detail_path, 'w', encoding='utf-8') as f:
+    f.write(html)
+
+print('✅ product_detail.html با بخش رنگ بازنویسی شد')

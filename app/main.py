@@ -76,21 +76,59 @@ class Order(db.Model):
     phone = db.Column(db.String(20), nullable=False)
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    # فیلدهای جدید
+    full_name = db.Column(db.String(200), nullable=True)
+    postal_code = db.Column(db.String(20), nullable=True)
+    province = db.Column(db.String(50), nullable=True)
+    shipping_cost = db.Column(db.Numeric(10, 2), default=0)
     
     user = db.relationship('User', backref='orders')
     items = db.relationship('OrderItem', backref='order', cascade='all, delete-orphan')
+
+# ===== مدل تنوع محصولات =====
+class ProductVariant(db.Model):
+    __tablename__ = 'product_variants'
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    value = db.Column(db.String(100), nullable=False)
+    color_code = db.Column(db.String(20), nullable=True)
+    price_adjustment = db.Column(db.Numeric(10, 2), default=0.00)
+    quantity = db.Column(db.Integer, default=0)
+    sku = db.Column(db.String(100), unique=True, nullable=False)
+    image_url = db.Column(db.String(300), nullable=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    product = db.relationship('Product', backref='variants')
+
+
+
+class ProductSpecification(db.Model):
+    __tablename__ = 'product_specifications'
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    spec_key = db.Column(db.String(100), nullable=False)
+    spec_value = db.Column(db.String(200), nullable=False)
+    display_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    product = db.relationship('Product', backref='specifications')
+
+def create_app():
+    return app
+
 
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)
     product_name = db.Column(db.String(200), nullable=False)
     product_price = db.Column(db.Numeric(10, 2), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     total_price = db.Column(db.Numeric(10, 2), nullable=False)
     
     product = db.relationship('Product')
+    variant = db.relationship('ProductVariant')
 
 class Review(db.Model):
     __tablename__ = 'reviews'
@@ -267,27 +305,34 @@ def product_detail(product_id):
 @app.route('/add-to-cart/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
     quantity = request.form.get('quantity', 1, type=int)
-    
+    variant_id = request.form.get('variant_id', type=int)
+
     product = db.session.get(Product, product_id)
-    
+
     if not product:
         flash('محصول مورد نظر یافت نشد!', 'error')
         return redirect(url_for('products'))
-    
+
     if quantity > product.quantity:
         flash(f'تعداد درخواستی بیشتر از موجودی است! (موجودی: {product.quantity})', 'error')
         return redirect(url_for('product_detail', product_id=product_id))
-    
+
     cart = session.get('cart', {})
-    
-    if str(product_id) in cart:
-        cart[str(product_id)] += quantity
+
+    # کلید سبد: product_id:variant_id
+    if variant_id:
+        cart_key = f"{product_id}:{variant_id}"
     else:
-        cart[str(product_id)] = quantity
-    
+        cart_key = str(product_id)
+
+    if cart_key in cart:
+        cart[cart_key] += quantity
+    else:
+        cart[cart_key] = quantity
+
     session['cart'] = cart
     session.modified = True
-    
+
     flash(f'{product.name} به سبد خرید اضافه شد!', 'success')
     return redirect(url_for('cart'))
 
@@ -297,39 +342,68 @@ def cart():
     cart_items = []
     total_price = 0
 
-    for product_id, quantity in cart.items():
+    for cart_key, quantity in list(cart.items()):
         try:
-            product = Product.query.filter_by(id=int(product_id)).first()
+            # جدا کردن product_id و variant_id
+            parts = cart_key.split(':')
+            product_id = int(parts[0])
+            variant_id = int(parts[1]) if len(parts) > 1 else None
+
+            product = Product.query.filter_by(id=product_id).first()
             if product:
-                item_total = product.price * quantity
+                variant_info = None
+                if variant_id:
+                    variant = ProductVariant.query.get(variant_id)
+                    if variant:
+                        variant_info = {
+                            'id': variant.id,
+                            'name': variant.name,
+                            'value': variant.value,
+                            'color_code': variant.color_code,
+                            'price_adjustment': float(variant.price_adjustment)
+                        }
+
+                # محاسبه قیمت نهایی با تغییر قیمت رنگ
+                final_price = float(product.price)
+                if variant_info:
+                    final_price += variant_info['price_adjustment']
+
+                item_total = final_price * quantity
                 total_price += item_total
                 cart_items.append({
                     'product': product,
                     'quantity': quantity,
-                    'item_total': item_total
+                    'item_total': item_total,
+                    'final_price': final_price,
+                    'variant': variant_info
                 })
             else:
-                cart.pop(str(product_id), None)
+                cart.pop(cart_key, None)
                 session['cart'] = cart
                 session.modified = True
         except Exception as e:
             print(f"❌ خطا: {e}")
 
+    # تخفیف
     coupon_data = session.get('coupon')
     discount_amount = 0
     coupon_code = None
+
     if coupon_data:
         discount_amount = coupon_data.get('discount_amount', 0)
         coupon_code = coupon_data.get('code')
-        if discount_amount > total_price:
-            discount_amount = total_price
+        total_price_float = float(total_price)
+        if discount_amount > total_price_float:
+            discount_amount = total_price_float
             coupon_data['discount_amount'] = discount_amount
             session['coupon'] = coupon_data
             session.modified = True
-        total_price -= discount_amount
+        total_price = Decimal(str(total_price_float - discount_amount))
+    else:
+        total_price = Decimal(str(total_price))
 
-    return render_template('cart.html', 
-                          cart_items=cart_items, 
+    return render_template('cart.html',
+                          cart_items=cart_items,
                           total_price=total_price,
                           discount_amount=discount_amount,
                           coupon_code=coupon_code)
@@ -477,11 +551,11 @@ def admin_product_create():
     if request.method == 'POST':
         name = request.form.get('name')
         description = request.form.get('description')
-        price = request.form.get('price')
+        price = request.form.get('price', '').replace(',', '').strip()
         quantity = request.form.get('quantity', 0)
         category_id = request.form.get('category_id', type=int)
         material = request.form.get('material')
-        discount_price = request.form.get('discount_price')
+        discount_price = request.form.get('discount_price', '').replace(',', '')
         
         if not name or not price:
             flash('نام و قیمت الزامی است!', 'error')
@@ -928,100 +1002,118 @@ def admin_payment_confirmation_action(confirmation_id, action):
 
 # ===== مسیرهای سفارشات و پرداخت =====
 @app.route('/checkout', methods=['GET', 'POST'])
+@login_required
 def checkout():
-    if not current_user.is_authenticated:
-        flash('لطفاً ابتدا وارد حساب خود شوید.', 'warning')
-        return redirect(url_for('login'))
-    
     cart = session.get('cart', {})
-    if not cart:
-        flash('سبد خرید شما خالی است!', 'error')
-        return redirect(url_for('cart'))
-    
+    cart_items = []
+    total_price = 0
+
+    # پردازش آیتم‌های سبد
+    for cart_key, quantity in list(cart.items()):
+        try:
+            parts = cart_key.split(':')
+            product_id = int(parts[0])
+            variant_id = int(parts[1]) if len(parts) > 1 else None
+
+            product = Product.query.get(product_id)
+            if product:
+                variant_info = None
+                if variant_id:
+                    variant = ProductVariant.query.get(variant_id)
+                    if variant:
+                        variant_info = {
+                            'id': variant.id,
+                            'name': variant.name,
+                            'value': variant.value,
+                            'color_code': variant.color_code,
+                            'price_adjustment': float(variant.price_adjustment)
+                        }
+
+                final_price = float(product.price)
+                if variant_info:
+                    final_price += variant_info['price_adjustment']
+
+                item_total = final_price * quantity
+                total_price += item_total
+                cart_items.append({
+                    'product': product,
+                    'quantity': quantity,
+                    'item_total': item_total,
+                    'final_price': final_price,
+                    'variant': variant_info
+                })
+        except Exception as e:
+            print(f"❌ خطا: {e}")
+
+    # محاسبه هزینه پست
+    shipping_cost = 0
+    try:
+        from postal_rates import calculate_shipping
+        shipping_cost = calculate_shipping('تهران')
+    except:
+        shipping_cost = 0
+
+    total_with_shipping = float(total_price) + shipping_cost
+
+    # POST - ثبت سفارش
     if request.method == 'POST':
-        address = request.form.get('address')
-        phone = request.form.get('phone')
-        
-        if not address or not phone:
-            flash('لطفاً تمام اطلاعات را وارد کنید!', 'error')
-            cart_items = []
-            total_price = 0
-            for product_id, quantity in cart.items():
-                product = Product.query.get(int(product_id))
-                if product:
-                    item_total = product.price * quantity
-                    total_price += item_total
-                    cart_items.append({
-                        'product': product,
-                        'quantity': quantity,
-                        'item_total': item_total
-                    })
-            return render_template('checkout.html', cart_items=cart_items, total_price=total_price)
-        
         try:
             import random
             import string
             order_number = ''.join(random.choices(string.digits, k=10))
-            
+
             total_amount = 0
-            for product_id, quantity in cart.items():
-                product = Product.query.get(int(product_id))
-                if product:
-                    total_amount += product.price * quantity
-            
+            for item in cart_items:
+                total_amount += item['item_total']
+
+            # ساخت سفارش
             order = Order(
-                user_id=current_user.id,
                 order_number=order_number,
-                total_amount=total_amount,
-                shipping_address=address,
-                phone=phone,
+                user_id=current_user.id,
+                total_amount=Decimal(str(total_amount + shipping_cost)),
+                shipping_address=request.form.get('address', ''),
+                phone=request.form.get('phone', ''),
+                full_name=request.form.get('full_name', ''),
+                postal_code=request.form.get('postal_code', ''),
+                province=request.form.get('province', 'تهران'),
+                shipping_cost=Decimal(str(shipping_cost)),
                 status='pending'
             )
             db.session.add(order)
             db.session.flush()
-            
-            for product_id, quantity in cart.items():
-                product = Product.query.get(int(product_id))
-                if product:
-                    order_item = OrderItem(
-                        order_id=order.id,
-                        product_id=product.id,
-                        product_name=product.name,
-                        product_price=product.price,
-                        quantity=quantity,
-                        total_price=product.price * quantity
-                    )
-                    db.session.add(order_item)
-                    product.quantity -= quantity
-            
+
+            # آیتم‌های سفارش
+            for item in cart_items:
+                order_item = OrderItem(
+                    order_id=order.id,
+                    product_id=item['product'].id,
+                    variant_id=item['variant']['id'] if item['variant'] else None,
+                    product_name=item['product'].name,
+                    product_price=Decimal(str(item['final_price'])),
+                    quantity=item['quantity'],
+                    total_price=Decimal(str(item['item_total']))
+                )
+                db.session.add(order_item)
+
             db.session.commit()
-            
-            session.pop('cart', None)
+
+            # خالی کردن سبد
+            session['cart'] = {}
             session.modified = True
-            
-            flash(f'سفارش شما با شماره {order_number} با موفقیت ثبت شد!', 'success')
-            return redirect(url_for('payment_confirm', order_id=order.id))
-            
+
+            flash(f'سفارش {order_number} با موفقیت ثبت شد!', 'success')
+            return redirect(url_for('order_detail', order_id=order.id))
+
         except Exception as e:
             db.session.rollback()
             flash(f'خطا در ثبت سفارش: {str(e)}', 'error')
-            return redirect(url_for('cart'))
-    
-    cart_items = []
-    total_price = 0
-    
-    for product_id, quantity in cart.items():
-        product = Product.query.get(int(product_id))
-        if product:
-            item_total = product.price * quantity
-            total_price += item_total
-            cart_items.append({
-                'product': product,
-                'quantity': quantity,
-                'item_total': item_total
-            })
-    
-    return render_template('checkout.html', cart_items=cart_items, total_price=total_price)
+            return redirect(url_for('checkout'))
+
+    return render_template('checkout.html',
+                          cart_items=cart_items,
+                          total_price=total_price,
+                          shipping_cost=shipping_cost,
+                          total_with_shipping=total_with_shipping)
 
 @app.route('/payment/confirm/<int:order_id>', methods=['GET', 'POST'])
 @login_required
@@ -1204,32 +1296,5 @@ def admin_variant_delete(variant_id):
     return redirect(url_for('admin_product_variants', product_id=product_id))
 
 
-# ===== مدل تنوع محصولات =====
-class ProductVariant(db.Model):
-    __tablename__ = 'product_variants'
-    id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    value = db.Column(db.String(100), nullable=False)
-    color_code = db.Column(db.String(20), nullable=True)
-    price_adjustment = db.Column(db.Numeric(10, 2), default=0.00)
-    quantity = db.Column(db.Integer, default=0)
-    sku = db.Column(db.String(100), unique=True, nullable=False)
-    image_url = db.Column(db.String(300), nullable=True)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    product = db.relationship('Product', backref='variants')
 
 # ===== مدل مشخصات فنی =====
-class ProductSpecification(db.Model):
-    __tablename__ = 'product_specifications'
-    id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    spec_key = db.Column(db.String(100), nullable=False)
-    spec_value = db.Column(db.String(200), nullable=False)
-    display_order = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    product = db.relationship('Product', backref='specifications')
-
-def create_app():
-    return app
-
