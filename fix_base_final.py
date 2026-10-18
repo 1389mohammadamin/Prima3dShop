@@ -1,0 +1,198 @@
+﻿base_path = 'app/interfaces/templates/base.html'
+
+html_content = '''<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    
+    <title>{% block title %}پریما استور{% endblock %}</title>
+
+    <!-- Tailwind CSS لوکال -->
+    <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
+    
+    <!-- تنظیمات رنگ و فونت Tailwind -->
+    <script>
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            emerald: {
+                                50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0',
+                                300: '#6ee7b7', 400: '#34d399', 500: '#10b981',
+                                600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b',
+                            }
+                        },
+                        fontFamily: {
+                            sans: ['Vazirmatn', 'sans-serif'],
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- فونت آیکون‌ها -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    
+    <!-- فونت وزیرمتن -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS اختصاصی خودت -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; }
+        .footer .social-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: all 0.3s; }
+        .footer .social-icon:hover { background: #10b981; transform: translateY(-3px); }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+    <!-- اعلان سراسری -->
+    {% if announcement %}
+    <div class="bg-emerald-600 text-white py-2 px-4 text-center text-sm font-medium">
+        <i class="fas fa-bullhorn ml-2"></i> {{ announcement }}
+    </div>
+    {% endif %}
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- لوگو و منو -->
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center gap-2 group">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="پریما استور" class="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                        <span class="text-xl font-bold text-gray-800 transition-colors duration-300 group-hover:text-emerald-600">پریما استور</span>
+                    </a>
+                    
+                    <div class="hidden md:flex mr-10 space-x-4">
+                        <a href="/" class="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition">خانه</a>
+                        <a href="/products" class="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition">محصولات</a>
+                        <a href="/about" class="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition">درباره ما</a>
+                        <a href="/contact" class="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition">تماس با ما</a>
+                    </div>
+                </div>
+                
+                <!-- بخش کاربر -->
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <!-- سبد خرید -->
+                    <a href="/cart" class="relative text-gray-700 hover:text-emerald-600 transition">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {{ session.get('cart', {})|length }}
+                        </span>
+                    </a>
+                    
+                    <!-- پروفایل -->
+                    {% if current_user.is_authenticated %}
+                    <div class="relative group">
+                        <button class="flex items-center text-gray-700 hover:text-emerald-600 transition">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                            <span class="mr-2">{{ current_user.username }}</span>
+                            <i class="fas fa-chevron-down text-xs mr-1"></i>
+                        </button>
+                        <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-50 border border-gray-100">
+                            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600">پروفایل</a>
+                            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600">سفارشات</a>
+                            {% if current_user.is_admin %}
+                            <div class="border-t border-gray-100"></div>
+                            <div class="px-4 py-2 text-xs text-gray-400 font-bold">مدیریت</div>
+                            <a href="/admin" class="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600">داشبورد</a>
+                            <a href="/admin/products" class="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600">محصولات</a>
+                            <a href="/admin/categories" class="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600">دسته‌بندی‌ها</a>
+                            <a href="/admin/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600">سفارشات</a>
+                            <a href="/admin/users" class="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600">کاربران</a>
+                            {% endif %}
+                            <div class="border-t border-gray-100"></div>
+                            <a href="/auth/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-md">خروج</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="/auth/login" class="text-gray-700 hover:text-emerald-600 transition font-medium">ورود</a>
+                    <a href="/auth/register" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition font-medium">ثبت‌نام</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages (پیام‌ها) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 mt-4">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-lg mb-2 shadow-sm {% if category == 'success' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% elif category == 'error' %}bg-red-100 text-red-800 border border-red-200{% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Content (محتوای اصلی) -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer (فوتر) -->
+    <footer class="footer bg-gray-900 text-gray-300 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- بخش اول: لوگو و شعار -->
+                <div>
+                    <a href="/" class="flex items-center gap-2 mb-4 text-white">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="پریما استور" class="h-12 w-12 object-contain bg-white rounded-full p-1">
+                        <span class="text-2xl font-bold">پریما استور</span>
+                    </a>
+                    <p class="text-sm text-gray-400 mb-4">پریما استور؛ لمسِ خلاقیت. بهترین محصولات با کیفیت بالا.</p>
+                    <div class="flex gap-3 mt-4">
+                        <a href="#" class="social-icon"><i class="fab fa-telegram"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                
+                <!-- بخش دوم: لینک‌های مفید -->
+                <div>
+                    <h4 class="text-white font-bold mb-4 text-lg">دسترسی سریع</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/" class="hover:text-emerald-400 transition">خانه</a></li>
+                        <li><a href="/products" class="hover:text-emerald-400 transition">محصولات</a></li>
+                        <li><a href="/about" class="hover:text-emerald-400 transition">درباره ما</a></li>
+                        <li><a href="/contact" class="hover:text-emerald-400 transition">تماس با ما</a></li>
+                    </ul>
+                </div>
+                
+                <!-- بخش سوم: اطلاعات تماس -->
+                <div>
+                    <h4 class="text-white font-bold mb-4 text-lg">ارتباط با ما</h4>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li class="flex items-center gap-2" dir="ltr"><i class="fas fa-phone text-emerald-500"></i> 09945553206</li>
+                        <li class="flex items-center gap-2" dir="ltr"><i class="fas fa-envelope text-emerald-500"></i> PrimaStore@vatanmail.ir</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-500">
+                © 2026 پریما استور - تمامی حقوق مادی و معنوی محفوظ است
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</body>
+</html>'''
+
+with open(base_path, 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print('✅ base.html کاملاً سالم و تمیز بازنویسی شد!')
+print('✅ لوگو و فاویکون اضافه شدند.')
+print('✅ Tailwind لوکال لود می‌شود.')

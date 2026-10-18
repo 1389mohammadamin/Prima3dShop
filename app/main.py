@@ -81,6 +81,7 @@ class Order(db.Model):
     postal_code = db.Column(db.String(20), nullable=True)
     province = db.Column(db.String(50), nullable=True)
     shipping_cost = db.Column(db.Numeric(10, 2), default=0)
+    receipt_image = db.Column(db.String(300), nullable=True)
     
     user = db.relationship('User', backref='orders')
     items = db.relationship('OrderItem', backref='order', cascade='all, delete-orphan')
@@ -111,6 +112,121 @@ class ProductSpecification(db.Model):
     display_order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     product = db.relationship('Product', backref='specifications')
+
+
+# ===== صفحه پرداخت =====
+@app.route('/order/<int:order_id>/payment')
+@login_required
+def payment_page(order_id):
+    order = Order.query.get_or_404(order_id)
+    if order.user_id != current_user.id and not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+    return render_template('payment.html', order=order)
+
+
+# ===== تأیید پرداخت =====
+@app.route('/order/<int:order_id>/confirm-payment', methods=['POST'])
+@login_required
+def confirm_payment(order_id):
+    order = Order.query.get_or_404(order_id)
+    if order.user_id != current_user.id and not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+
+    order.status = 'pending_confirmation'
+    db.session.commit()
+
+    flash('✅ درخواست تأیید پرداخت شما ثبت شد. پس از بررسی، سفارش شما پردازش می‌شود.', 'success')
+    return redirect(url_for('order_detail', order_id=order.id))
+
+
+
+# ===== دانلود فیش =====
+@app.route('/admin/order/<int:order_id>/receipt/download')
+@login_required
+def admin_download_receipt(order_id):
+    if not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+    order = Order.query.get_or_404(order_id)
+    if not order.receipt_image:
+        flash('فیشی برای این سفارش آپلود نشده!', 'error')
+        return redirect(url_for('admin_order_detail', order_id=order_id))
+    filepath = os.path.join('app', 'interfaces', order.receipt_image.lstrip('/'))
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True)
+    flash('فایل فیش پیدا نشد!', 'error')
+    return redirect(url_for('admin_order_detail', order_id=order_id))
+
+
+# ===== حذف فیش =====
+@app.route('/admin/order/<int:order_id>/receipt/delete', methods=['POST'])
+@login_required
+def admin_delete_receipt(order_id):
+    if not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+    order = Order.query.get_or_404(order_id)
+    if order.receipt_image:
+        filepath = os.path.join('app', 'interfaces', order.receipt_image.lstrip('/'))
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        order.receipt_image = None
+        db.session.commit()
+        flash('✅ فیش با موفقیت حذف شد!', 'success')
+    return redirect(url_for('admin_order_detail', order_id=order_id))
+
+
+
+# ===== آپلود فیش توسط مشتری =====
+@app.route('/order/<int:order_id>/upload-receipt', methods=['POST'])
+@login_required
+def upload_receipt(order_id):
+    order = Order.query.get_or_404(order_id)
+    if order.user_id != current_user.id and not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+
+    receipt = request.files.get('receipt')
+    if receipt and receipt.filename:
+        receipts_dir = os.path.join('app', 'interfaces', 'static', 'receipts')
+        os.makedirs(receipts_dir, exist_ok=True)
+
+        import uuid
+        ext = os.path.splitext(receipt.filename)[1]
+        filename = f"receipt_{order.order_number}_{uuid.uuid4().hex[:8]}{ext}"
+        filepath = os.path.join(receipts_dir, filename)
+        receipt.save(filepath)
+        order.receipt_image = f"/static/receipts/{filename}"
+        db.session.commit()
+        flash('✅ فیش با موفقیت آپلود شد!', 'success')
+    else:
+        flash('❌ لطفاً یک عکس انتخاب کنید!', 'error')
+
+    return redirect(url_for('payment_page', order_id=order.id))
+
+
+
+# ===== حذف فیش توسط مشتری =====
+@app.route('/order/<int:order_id>/receipt/delete', methods=['POST'])
+@login_required
+def customer_delete_receipt(order_id):
+    order = Order.query.get_or_404(order_id)
+    if order.user_id != current_user.id and not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+
+    if order.receipt_image:
+        filepath = os.path.join('app', 'interfaces', order.receipt_image.lstrip('/'))
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        order.receipt_image = None
+        db.session.commit()
+        flash('✅ فیش با موفقیت حذف شد!', 'success')
+
+    return redirect(url_for('payment_page', order_id=order.id))
+
 
 def create_app():
     return app
@@ -1102,7 +1218,7 @@ def checkout():
             session.modified = True
 
             flash(f'سفارش {order_number} با موفقیت ثبت شد!', 'success')
-            return redirect(url_for('order_detail', order_id=order.id))
+            return redirect(url_for('payment_page', order_id=order.id))
 
         except Exception as e:
             db.session.rollback()

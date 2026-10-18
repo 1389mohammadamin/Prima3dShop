@@ -8,7 +8,7 @@ app = create_app()
 
 with app.app_context():
     # چک کردن وجود ادمین
-    admin = User.query.filter_by(username='MohammadAmin').first()
+    admin = User.query.filter_by(username='sepehrwin77').first()
     
     if admin:
         print("ℹ️ ادمین از قبل وجود دارد")
@@ -16,17 +16,17 @@ with app.app_context():
         print(f"   email: {admin.email}")
     else:
         admin = User(
-            username='MohammadAmin',
-            email='Prima3dShop@vatanmail.ir',
-            password_hash=generate_password_hash('Mohammad1389Amin'),
+            username='sepehrwin77',
+            email='sepehrwin366@gmail.com',
+            password_hash=generate_password_hash('sepehr139088'),
             is_admin=True
         )
         db.session.add(admin)
         db.session.commit()
         print("✅ ادمین ساخته شد!")
         print("   ─────────────────────")
-        print("   👤 username: MohammadAmin")
-        print("   🔑 password: Mohammad1389Amin")
+        print("   👤 username: sepehrwin77")
+        print("   🔑 password: sepehr139088")
         print("   ─────────────────────")
     
     # نمایش همه کاربران
