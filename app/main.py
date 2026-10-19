@@ -82,6 +82,8 @@ class Order(db.Model):
     province = db.Column(db.String(50), nullable=True)
     shipping_cost = db.Column(db.Numeric(10, 2), default=0)
     receipt_image = db.Column(db.String(300), nullable=True)
+    coupon_code = db.Column(db.String(50), nullable=True)
+    discount_amount = db.Column(db.Numeric(10, 2), default=0)
     
     user = db.relationship('User', backref='orders')
     items = db.relationship('OrderItem', backref='order', cascade='all, delete-orphan')
@@ -228,6 +230,171 @@ def customer_delete_receipt(order_id):
     return redirect(url_for('payment_page', order_id=order.id))
 
 
+@app.route('/apply-coupon', methods=['POST'])
+def apply_coupon():
+    coupon_code = request.form.get('coupon_code', '').strip().upper()
+    if not coupon_code:
+        flash('کد تخفیف را وارد کنید!', 'error')
+        return redirect(url_for('cart'))
+    
+    coupon = Coupon.query.filter_by(code=coupon_code, is_active=True).first()
+    if not coupon:
+        flash('کد تخفیف نامعتبر است!', 'error')
+        return redirect(url_for('cart'))
+    
+    # ذخیره کد و اطلاعات در سشن
+    session['coupon'] = {
+        'code': coupon.code,
+        'discount_type': coupon.discount_type,
+        'discount_value': float(coupon.discount_value),
+        'max_discount_amount': float(coupon.max_discount_amount) if coupon.max_discount_amount else None
+    }
+    session.modified = True
+    
+    if coupon.discount_type == 'percent':
+        flash(f'✅ کد تخفیف {coupon.discount_value}٪ اعمال شد!', 'success')
+    else:
+        flash(f'✅ کد تخفیف {coupon.discount_value} تومانی اعمال شد!', 'success')
+        
+    return redirect(url_for('cart'))
+    
+    coupon = Coupon.query.filter_by(code=coupon_code, is_active=True).first()
+    if not coupon:
+        flash('کد تخفیف نامعتبر است!', 'error')
+        return redirect(url_for('cart'))
+    
+    # ذخیره کد و درصد در سشن
+    session['coupon'] = {
+        'code': coupon.code,
+        'discount_percent': float(coupon.discount_percent)
+    }
+    session.modified = True
+    flash(f'✅ کد تخفیف {coupon.discount_percent}٪ اعمال شد!', 'success')
+    return redirect(url_for('cart'))
+
+@app.route('/remove-coupon', methods=['POST'])
+def remove_coupon():
+    session.pop('coupon', None)
+    session.modified = True
+    flash('کد تخفیف حذف شد!', 'success')
+    return redirect(url_for('cart'))
+
+
+# ===== حذف عکس محصول =====
+@app.route('/admin/products/<int:product_id>/delete-image', methods=['POST'])
+@login_required
+def admin_delete_product_image(product_id):
+    if not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+    
+    product = Product.query.get_or_404(product_id)
+    if product.image_url:
+        # حذف فایل از هاست
+        filepath = os.path.join('app', 'interfaces', product.image_url.lstrip('/'))
+        if os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+            except Exception as e:
+                print(f"خطا در حذف فایل: {e}")
+        
+        # حذف از دیتابیس
+        product.image_url = None
+        db.session.commit()
+        flash('✅ عکس محصول با موفقیت حذف شد!', 'success')
+    else:
+        flash('این محصول عکسی ندارد!', 'error')
+        
+    return redirect(url_for('admin_product_edit', product_id=product.id))
+
+
+
+@app.route('/admin/test-upload', methods=['POST'])
+@login_required
+def test_upload():
+    if not current_user.is_admin:
+        return "دسترسی غیرمجاز", 403
+    
+    image = request.files.get('image')
+    if image and image.filename != '':
+        return f"✅ عکس دریافت شد! نام فایل: {image.filename}"
+    return "❌ هیچ عکسی دریافت نشد!"
+
+
+
+# ===== مدل تصاویر گالری محصول =====
+class ProductImage(db.Model):
+    __tablename__ = 'product_images'
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    image_url = db.Column(db.String(300), nullable=False)
+    display_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    product = db.relationship('Product', backref=db.backref('gallery_images', cascade='all, delete-orphan'))
+
+
+# ===== روت‌های گالری تصاویر =====
+@app.route('/admin/products/<int:product_id>/gallery/upload', methods=['POST'])
+@login_required
+def admin_upload_gallery_image(product_id):
+    if not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+    
+    product = Product.query.get_or_404(product_id)
+    images = request.files.getlist('gallery_images')
+    
+    uploaded_count = 0
+    if images:
+        upload_dir = os.path.join('app', 'interfaces', 'static', 'images', 'products')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        import uuid
+        for image in images:
+            if image and image.filename != '':
+                ext = os.path.splitext(image.filename)[1].lower()
+                filename = f"gallery_{uuid.uuid4().hex[:10]}{ext}"
+                filepath = os.path.join(upload_dir, filename)
+                image.save(filepath)
+                
+                # ذخیره در دیتابیس
+                new_img = ProductImage(
+                    product_id=product.id,
+                    image_url=f"/static/images/products/{filename}",
+                    display_order=0
+                )
+                db.session.add(new_img)
+                uploaded_count += 1
+    
+    db.session.commit()
+    flash(f'✅ {uploaded_count} تصویر به گالری اضافه شد!', 'success')
+    return redirect(url_for('admin_product_edit', product_id=product.id))
+
+
+@app.route('/admin/gallery-image/<int:image_id>/delete', methods=['POST'])
+@login_required
+def admin_delete_gallery_image(image_id):
+    if not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+    
+    image = ProductImage.query.get_or_404(image_id)
+    product_id = image.product_id
+    
+    # حذف فایل فیزیکی
+    filepath = os.path.join('app', 'interfaces', image.image_url.lstrip('/'))
+    if os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+        except Exception as e:
+            print(f"خطا در حذف فایل: {e}")
+    
+    db.session.delete(image)
+    db.session.commit()
+    
+    flash('✅ تصویر از گالری حذف شد!', 'success')
+    return redirect(url_for('admin_product_edit', product_id=product_id))
+
 def create_app():
     return app
 
@@ -285,7 +452,7 @@ class CouponUsage(db.Model):
     coupon_id = db.Column(db.Integer, db.ForeignKey('coupons.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
-    discount_amount = db.Column(db.Numeric(10, 2), nullable=False)
+    discount_percent = db.Column(db.Numeric(5, 2), nullable=False)
     used_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     
     user = db.relationship('User', backref='coupon_usages')
@@ -410,6 +577,7 @@ def products():
                           min_price=min_price,
                           max_price=max_price,
                           material=material,
+                
                           sort=sort)
 
 @app.route('/product/<int:product_id>')
@@ -504,17 +672,25 @@ def cart():
     coupon_data = session.get('coupon')
     discount_amount = 0
     coupon_code = None
-
+    
     if coupon_data:
-        discount_amount = coupon_data.get('discount_amount', 0)
         coupon_code = coupon_data.get('code')
-        total_price_float = float(total_price)
-        if discount_amount > total_price_float:
-            discount_amount = total_price_float
-            coupon_data['discount_amount'] = discount_amount
-            session['coupon'] = coupon_data
-            session.modified = True
-        total_price = Decimal(str(total_price_float - discount_amount))
+        discount_type = coupon_data.get('discount_type', 'percent')
+        discount_value = coupon_data.get('discount_value', 0)
+        max_discount = coupon_data.get('max_discount_amount')
+        
+        # محاسبه بر اساس نوع تخفیف
+        if discount_type == 'percent':
+            discount_amount = (float(total_price) * discount_value) / 100
+            if max_discount and discount_amount > max_discount:
+                discount_amount = max_discount
+        else:
+            discount_amount = discount_value
+            
+        if discount_amount > float(total_price):
+            discount_amount = float(total_price)
+            
+        total_price = Decimal(str(float(total_price) - discount_amount))
     else:
         total_price = Decimal(str(total_price))
 
@@ -671,48 +847,61 @@ def admin_product_create():
         quantity = request.form.get('quantity', 0)
         category_id = request.form.get('category_id', type=int)
         material = request.form.get('material')
-        discount_price = request.form.get('discount_price', '').replace(',', '')
+        discount_price = request.form.get('discount_price', '').replace(',', '').strip()
         
         if not name or not price:
             flash('نام و قیمت الزامی است!', 'error')
             return redirect(url_for('admin_product_create'))
         
         try:
-            import re
-            # ساخت slug از نام محصول
-            slug = re.sub(r'[^\w\-]', '-', name.lower()) if name else ''
+            import re as regex_module
+            import uuid
+            
+            # ساخت slug
+            slug = regex_module.sub(r'[^\w\-]', '-', name.lower()) if name else ''
             slug = slug[:100] if slug else str(len(Product.query.all()) + 1)
             
+            # ذخیره عکس
+            image_url = None
+            image = request.files.get('image')
+            if image and image.filename != '':
+                upload_dir = os.path.join('app', 'interfaces', 'static', 'images', 'products')
+                os.makedirs(upload_dir, exist_ok=True)
+                ext = os.path.splitext(image.filename)[1].lower()
+                filename = f"{uuid.uuid4().hex[:10]}{ext}"
+                filepath = os.path.join(upload_dir, filename)
+                image.save(filepath)
+                image_url = f"/static/images/products/{filename}"
+                print(f"✅ عکس ذخیره شد: {filepath}")
+
+            # ساخت محصول
             product = Product(
                 name=name,
                 slug=slug,
                 description=description,
-                price=Decimal(str(price)),
+                price=Decimal(str(price.replace(',', '').strip())),
                 quantity=int(quantity) if quantity else 0,
                 category_id=category_id if category_id else None,
                 material=material,
-                discount_price=Decimal(str(discount_price)) if discount_price else None
+                discount_price=Decimal(str(discount_price.replace(',', '').strip())) if discount_price and discount_price.replace(',', '').strip() else None,
+                image_url=image_url,
+                is_available=request.form.get('in_stock') == '1',
+                status='published' if request.form.get('is_active') == '1' else 'draft'
             )
+            
             db.session.add(product)
             db.session.commit()
             
-            flash('محصول با موفقیت اضافه شد!', 'success')
+            flash('✅ محصول با موفقیت اضافه شد!', 'success')
             return redirect(url_for('admin_product_variants', product_id=product.id))
+            
         except Exception as e:
             db.session.rollback()
             flash(f'خطا: {str(e)}', 'error')
+            print(f"❌ خطا در ساخت محصول: {e}")
     
     categories = Category.query.all()
     return render_template('admin/product_form.html', product=None, categories=categories)
-
-    if not current_user.is_admin:
-        flash('دسترسی غیرمجاز!', 'error')
-        return redirect(url_for('index'))
-    
-    products = Product.query.all()
-    return render_template('admin/products.html', products=products)
-
-
 
 @app.route('/admin/products/edit/<int:product_id>', methods=['GET', 'POST'])
 @login_required
@@ -722,54 +911,62 @@ def admin_product_edit(product_id):
         return redirect(url_for('index'))
     
     product = Product.query.get_or_404(product_id)
-    categories = Category.query.all()
     
     if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        price = request.form.get('price', '').replace(',', '').strip()
+        quantity = request.form.get('quantity', 0)
+        category_id = request.form.get('category_id', type=int)
+        material = request.form.get('material')
+        discount_price = request.form.get('discount_price', '').replace(',', '').strip()
+        
         try:
-            product.name = request.form.get('name')
-            product.description = request.form.get('description')
-            product.price = Decimal(str(request.form.get('price')))
-            product.quantity = int(request.form.get('quantity', 0))
-            product.category_id = int(request.form.get('category_id')) if request.form.get('category_id') else None
-            product.material = request.form.get('material')
-            product.discount_price = Decimal(str(request.form.get('discount_price'))) if request.form.get('discount_price') else None
-            product.color = request.form.get('color')
-            product.color_name = request.form.get('color_name')
-            product.is_available = 'is_available' in request.form
-            product.status = request.form.get('status', 'published')
+            import re as regex_module
+            import uuid
             
-            # آپلود تصویر جدید
-            if 'image' in request.files:
-                image_file = request.files['image']
-                if image_file and image_file.filename != '':
-                    import os
-                    import random
-                    import string
-                    from werkzeug.utils import secure_filename
-                    
-                    # حذف تصویر قبلی
-                    if product.image_url:
-                        old_path = product.image_url.replace('/static/', 'app/interfaces/static/')
-                        if os.path.exists(old_path):
-                            try:
-                                os.remove(old_path)
-                            except:
-                                pass
-                    
-                    ext = image_file.filename.rsplit('.', 1)[1].lower() if '.' in image_file.filename else 'jpg'
-                    filename = f"{''.join(random.choices(string.ascii_lowercase + string.digits, k=20))}.{ext}"
-                    os.makedirs('app/interfaces/static/images/products', exist_ok=True)
-                    save_path = os.path.join('app/interfaces/static/images/products', filename)
-                    image_file.save(save_path)
-                    product.image_url = f'/static/images/products/{filename}'
+            product.name = name
+            product.slug = regex_module.sub(r'[^\w\-]', '-', name.lower())[:100]
+            product.description = description
+            price = price.replace(',', '').strip() if price else '0'
+            product.price = Decimal(str(price))
+            product.quantity = int(quantity) if quantity else 0
+            product.category_id = category_id if category_id else None
+            product.material = material
+            # فیکس قیمت با تخفیف
+            discount_price = discount_price.replace(',', '').strip() if discount_price else ''
+            if discount_price:
+                try:
+                    product.discount_price = Decimal(str(discount_price))
+                except:
+                    product.discount_price = None
+            else:
+                product.discount_price = None
+            product.is_available = request.form.get('in_stock') == '1'
+            product.status = 'published' if request.form.get('is_active') == '1' else 'draft'
+            
+            # آپلود عکس جدید
+            image = request.files.get('image')
+            if image and image.filename != '':
+                upload_dir = os.path.join('app', 'interfaces', 'static', 'images', 'products')
+                os.makedirs(upload_dir, exist_ok=True)
+                ext = os.path.splitext(image.filename)[1].lower()
+                filename = f"{uuid.uuid4().hex[:10]}{ext}"
+                filepath = os.path.join(upload_dir, filename)
+                image.save(filepath)
+                product.image_url = f"/static/images/products/{filename}"
+                print(f"✅ عکس آپدیت شد: {filepath}")
             
             db.session.commit()
-            flash('محصول با موفقیت ویرایش شد!', 'success')
+            flash('✅ محصول با موفقیت ویرایش شد!', 'success')
             return redirect(url_for('admin_products'))
+            
         except Exception as e:
             db.session.rollback()
             flash(f'خطا: {str(e)}', 'error')
+            print(f"❌ خطا در ویرایش محصول: {e}")
     
+    categories = Category.query.all()
     return render_template('admin/product_form.html', product=product, categories=categories)
 
 @app.route('/admin/products/delete/<int:product_id>', methods=['POST'])
@@ -1124,7 +1321,6 @@ def checkout():
     cart_items = []
     total_price = 0
 
-    # پردازش آیتم‌های سبد
     for cart_key, quantity in list(cart.items()):
         try:
             parts = cart_key.split(':')
@@ -1161,6 +1357,29 @@ def checkout():
         except Exception as e:
             print(f"❌ خطا: {e}")
 
+    # محاسبه تخفیف
+    coupon_data = session.get('coupon')
+    total_discount = 0
+    coupon_code = None
+    
+    if coupon_data:
+        coupon_code = coupon_data.get('code')
+        discount_type = coupon_data.get('discount_type', 'percent')
+        discount_value = coupon_data.get('discount_value', 0)
+        max_discount = coupon_data.get('max_discount_amount')
+        
+        if discount_type == 'percent':
+            total_discount = (float(total_price) * discount_value) / 100
+            if max_discount and total_discount > max_discount:
+                total_discount = max_discount
+        else:
+            total_discount = discount_value
+            
+        if total_discount > float(total_price):
+            total_discount = float(total_price)
+            
+        total_price = Decimal(str(float(total_price) - total_discount))
+
     # محاسبه هزینه پست
     shipping_cost = 0
     try:
@@ -1182,23 +1401,23 @@ def checkout():
             for item in cart_items:
                 total_amount += item['item_total']
 
-            # ساخت سفارش
             order = Order(
                 order_number=order_number,
                 user_id=current_user.id,
-                total_amount=Decimal(str(total_amount + shipping_cost)),
+                total_amount=Decimal(str(total_price + shipping_cost)),
                 shipping_address=request.form.get('address', ''),
                 phone=request.form.get('phone', ''),
                 full_name=request.form.get('full_name', ''),
                 postal_code=request.form.get('postal_code', ''),
                 province=request.form.get('province', 'تهران'),
                 shipping_cost=Decimal(str(shipping_cost)),
+                coupon_code=coupon_code if coupon_data else None,
+                discount_amount=Decimal(str(total_discount)),
                 status='pending'
             )
             db.session.add(order)
             db.session.flush()
 
-            # آیتم‌های سفارش
             for item in cart_items:
                 order_item = OrderItem(
                     order_id=order.id,
@@ -1213,8 +1432,8 @@ def checkout():
 
             db.session.commit()
 
-            # خالی کردن سبد
             session['cart'] = {}
+            session.pop('coupon', None)
             session.modified = True
 
             flash(f'سفارش {order_number} با موفقیت ثبت شد!', 'success')

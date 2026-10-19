@@ -1,0 +1,124 @@
+﻿import os
+
+# =============================================
+# ۱. بررسی و فیکس فایل coupons.html
+# =============================================
+coupons_path = 'app/interfaces/templates/admin/coupons.html'
+if os.path.exists(coupons_path):
+    with open(coupons_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # اطمینان از اینکه base.html رو extend می‌کنه
+    if '{% extends "base.html" %}' not in content:
+        content = '{% extends "base.html" %}\n' + content
+        print("✅ تگ extends به coupons.html اضافه شد")
+
+    with open(coupons_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    print("✅ فایل coupons.html بررسی و اصلاح شد")
+
+# =============================================
+# ۲. بررسی فایل base.html برای لود Tailwind
+# =============================================
+base_path = 'app/interfaces/templates/base.html'
+with open(base_path, 'r', encoding='utf-8') as f:
+    base_content = f.read()
+
+if 'js/tailwind.js' not in base_content and 'css/tailwind.min.css' not in base_content:
+    print("⚠️ فایل Tailwind در base.html لود نمی‌شه! در حال فیکس...")
+    # اضافه کردن به head
+    if '</head>' in base_content:
+        base_content = base_content.replace('</head>', '<script src="{{ url_for(\'static\', filename=\'js/tailwind.js\') }}"></script>\n</head>')
+        with open(base_path, 'w', encoding='utf-8') as f:
+            f.write(base_content)
+        print("✅ تگ Tailwind به base.html اضافه شد")
+else:
+    print("✅ تگ Tailwind در base.html وجود دارد")
+
+# =============================================
+# ۳. بررسی و ساخت مجدد فایل coupons.html
+# =============================================
+new_coupons_html = '''{% extends "base.html" %}
+
+{% block title %}مدیریت کدهای تخفیف - پریما استور{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">مدیریت کدهای تخفیف</h1>
+        <a href="/admin/coupons/create" class="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition flex items-center gap-2 font-bold shadow-sm">
+            <i class="fas fa-plus"></i>
+            کد تخفیف جدید
+        </a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-right">
+            <thead>
+                <tr class="bg-gray-50 text-gray-600 text-sm">
+                    <th class="px-4 py-3 rounded-r-lg">کد</th>
+                    <th class="px-4 py-3">توضیحات</th>
+                    <th class="px-4 py-3">تخفیف</th>
+                    <th class="px-4 py-3">حداقل سفارش</th>
+                    <th class="px-4 py-3">مصرف</th>
+                    <th class="px-4 py-3">انقضا</th>
+                    <th class="px-4 py-3">وضعیت</th>
+                    <th class="px-4 py-3 rounded-l-lg">عملیات</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                {% for coupon in coupons %}
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+                    <td class="px-4 py-4 font-bold text-gray-800">{{ coupon.code }}</td>
+                    <td class="px-4 py-4 text-gray-500">{{ coupon.description or '-' }}</td>
+                    <td class="px-4 py-4 text-emerald-600 font-bold">
+                        {% if coupon.discount_type == 'percent' %}
+                            {{ coupon.discount_value }}%
+                        {% else %}
+                            {{ coupon.discount_value|format_currency }}
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-4 text-gray-600">{{ coupon.min_order_amount|format_currency }}</td>
+                    <td class="px-4 py-4">
+                        <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-lg text-xs">
+                            {{ coupon.used_count }} / {{ coupon.usage_limit or '∞' }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 text-gray-500 text-xs">
+                        {{ coupon.expiry_date.strftime('%Y/%m/%d') if coupon.expiry_date else 'بدون انقضا' }}
+                    </td>
+                    <td class="px-4 py-4">
+                        {% if coupon.is_active %}
+                            <span class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold">فعال</span>
+                        {% else %}
+                            <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold">غیرفعال</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-4">
+                        <form action="/admin/coupons/{{ coupon.id }}/delete" method="POST" class="inline" onsubmit="return confirm('آیا از حذف مطمئن هستید؟')">
+                            <button type="submit" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition" title="حذف">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-4 py-8 text-center text-gray-400">
+                        <i class="fas fa-ticket-alt text-4xl mb-3 block"></i>
+                        هیچ کد تخفیفی ثبت نشده است.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+'''
+
+with open(coupons_path, 'w', encoding='utf-8') as f:
+    f.write(new_coupons_html)
+print("✅ فایل coupons.html بازنویسی و استایل‌دهی شد")
+
+print("\n🎉 تمام! حالا سرور رو ریستارت کن.")

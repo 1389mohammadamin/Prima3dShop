@@ -110,7 +110,60 @@
         </div>
         {% endfor %}
     </div>
-    <div class="mt-4 pt-4 border-t">
+    
+    {% if order.coupon_code %}
+    <div class="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+        <div class="flex justify-between items-center">
+            <p class="text-sm text-emerald-800">
+                <i class="fas fa-ticket-alt ml-2"></i>
+                کد تخفیف استفاده شده: <strong class="font-bold">{{ order.coupon_code }}</strong>
+            </p>
+            <p class="text-sm font-bold text-emerald-600">
+                تخفیف: {{ order.discount_amount|format_currency }}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+    <!-- ===== صورت‌حساب ===== -->
+    <div class="mt-6 bg-gray-50 rounded-xl p-6 border border-gray-200">
+        <h3 class="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2">
+            <i class="fas fa-file-invoice-dollar text-emerald-600"></i>
+            صورت‌حساب نهایی
+        </h3>
+        
+        <div class="space-y-2 text-sm">
+            <!-- مبلغ محصولات -->
+            <div class="flex justify-between text-gray-600">
+                <span>جمع محصولات:</span>
+                <span>{{ (order.total_amount - order.shipping_cost + order.discount_amount)|format_currency }}</span>
+            </div>
+            
+            <!-- تخفیف -->
+            {% if order.discount_amount and order.discount_amount > 0 %}
+            <div class="flex justify-between text-emerald-600">
+                <span>تخفیف ({{ order.coupon_code }}):</span>
+                <span>- {{ order.discount_amount|format_currency }}</span>
+            </div>
+            {% endif %}
+            
+            <!-- هزینه پست -->
+            <div class="flex justify-between text-gray-600">
+                <span>هزینه ارسال:</span>
+                <span>{{ order.shipping_cost|format_currency }}</span>
+            </div>
+            
+            <!-- خط جداکننده -->
+            <div class="border-t border-gray-300 my-2"></div>
+            
+            <!-- مبلغ نهایی -->
+            <div class="flex justify-between text-lg font-bold text-gray-800">
+                <span>مبلغ قابل پرداخت:</span>
+                <span class="text-emerald-600">{{ order.total_amount|format_currency }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-6 pt-6 border-t">
         <p class="text-sm text-gray-500">آدرس ارسال</p>
         <p>{{ order.shipping_address }}</p>
         <p class="text-sm text-gray-500 mt-2">شماره تماس</p>

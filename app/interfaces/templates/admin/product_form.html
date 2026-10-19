@@ -1,160 +1,186 @@
-﻿{% extends "base.html" %}
-{% block title %}{% if product %}ویرایش{% else %}افزودن{% endif %} محصول - پریما استور
+{% extends "base.html" %}
+{% block title %}{% if product %}ویرایش {{ product.name }}{% else %}افزودن محصول جدید{% endif %} - پریما استور{% endblock %}
 
-
-
-
-
-
-<script>
-function formatPrice(el) {
-    el.addEventListener('keyup', function() {
-        var val = this.value.replace(/,/g, '');
-        if (val.length > 3) {
-            var parts = [];
-            while (val.length > 3) {
-                parts.unshift(val.slice(-3));
-                val = val.slice(0, val.length - 3);
-            }
-            parts.unshift(val);
-            this.value = parts.join(',');
-        } else {
-            this.value = val;
-        }
-    });
-}
-formatPrice(document.querySelector('input[name="price"]'));
-formatPrice(document.querySelector('input[name="discount_price"]'));
-</script>
-
-{% endblock %}
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-lg shadow p-6">
-        <h1 class="text-2xl font-bold mb-6">{% if product %}ویرایش{% else %}افزودن{% endif %} محصول</h1>
-        <form method="POST" enctype="multipart/form-data">    
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">نام محصول *</label>
-                <input type="text" name="name" value="{{ product.name if product else '' }}" required
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">توضیحات</label>
-                <textarea name="description" rows="4"
-                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">{{ product.description if product else '' }}</textarea>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">قیمت (تومان) *</label>
-                    <input type="text" name="price" inputmode="numeric" onkeyup="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')" step="1000" value="{{ product.price if product else '' }}" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">
+<div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+    <div class="flex justify-between items-center mb-8 border-b pb-4">
+        <h1 class="text-2xl font-bold text-gray-800">
+            {% if product %}ویرایش محصول{% else %}افزودن محصول جدید{% endif %}
+        </h1>
+        <a href="/admin/products" class="text-gray-500 hover:text-emerald-600 transition text-sm">
+            <i class="fas fa-arrow-right ml-1"></i> بازگشت به لیست
+        </a>
+    </div>
+
+    <!-- ===== فرم اصلی محصول ===== -->
+    <form action="{% if product %}/admin/products/edit/{{ product.id }}{% else %}/admin/products/create{% endif %}" 
+          method="POST" 
+          enctype="multipart/form-data" 
+          class="space-y-8">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- ستون اول -->
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">نام محصول *</label>
+                    <input type="text" name="name" value="{{ product.name if product else '' }}" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500">
                 </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">تعداد موجودی</label>
-                    <input type="number" name="quantity" value="{{ product.quantity if product else 0 }}"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">قیمت (تومان) *</label>
+                    <input type="text" name="price" value="{{ product.price if product else '' }}" required 
+                           onkeyup="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500" dir="ltr">
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">دسته‌بندی</label>
-                    <select name="category_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-gray-700">قیمت با تخفیف</label>
+                        <input type="text" name="discount_price" value="{{ product.discount_price if product else '' }}" 
+                               onkeyup="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500" dir="ltr">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-gray-700">تعداد موجودی</label>
+                        <input type="number" name="quantity" value="{{ product.quantity if product else '0' }}" min="0" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">دسته‌بندی</label>
+                    <select name="category_id" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500">
                         <option value="">بدون دسته</option>
                         {% for category in categories %}
-                        <option value="{{ category.id }}" {% if product and product.category_id == category.id %}selected{% endif %}>
-                            {{ category.name }}
-                        </option>
+                        <option value="{{ category.id }}" {% if product and product.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">جنس</label>
-                    <input type="text" name="material" value="{{ product.material if product else '' }}"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">جنس</label>
+                    <input type="text" name="material" value="{{ product.material if product else '' }}" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500">
                 </div>
             </div>
-                        <div class="mb-4">
-                <label class="block text-gray-700 mb-2">تصویر محصول</label>
-                <input type="file" name="image" accept="image/*" 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-                <p class="text-sm text-gray-500 mt-1">فرمت‌های مجاز: JPG, PNG, GIF</p>
-                {% if product and product.image_url %}
-                <div class="mt-2">
-                    <img src="{{ product.image_url }}" alt="{{ product.name }}" class="h-32 w-32 object-cover rounded-lg">
-                    <p class="text-sm text-gray-500 mt-1">تصویر فعلی</p>
+
+            <!-- ستون دوم -->
+            <div class="space-y-5">
+                <!-- تصویر اصلی -->
+                <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center">
+                    <label class="block text-sm font-semibold mb-4 text-gray-700 text-right">تصویر اصلی محصول</label>
+                    
+                    <div class="mb-4 flex justify-center">
+                        {% if product and product.image_url %}
+                            <div class="relative w-48 h-48 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                            </div>
+                        {% else %}
+                            <div class="w-48 h-48 rounded-xl bg-gray-100 border border-gray-200 flex flex-col items-center justify-center text-gray-400">
+                                <i class="fas fa-image text-6xl mb-2"></i>
+                                <span class="text-xs">بدون تصویر</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <label for="image" class="cursor-pointer bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition font-bold shadow-md inline-flex items-center gap-2">
+                        <i class="fas fa-cloud-upload-alt text-lg"></i>
+                        انتخاب و آپلود عکس
+                        <input id="image" name="image" type="file" accept="image/*" class="sr-only">
+                    </label>
+                    <p class="text-xs text-gray-500 mt-3">فرمت‌های مجاز: JPG, PNG, WEBP (حداکثر ۲ مگابایت)</p>
+                    <p id="file-name" class="text-sm text-emerald-600 font-semibold mt-2 hidden"></p>
                 </div>
-                {% endif %}
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">وضعیت</label>
-                <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500">
-                    <option value="draft" {% if product and product.status == 'draft' %}selected{% endif %}>پیش‌نویس</option>
-                    <option value="published" {% if not product or product.status == 'published' %}selected{% endif %}>منتشر شده</option>
-                    <option value="archived" {% if product and product.status == 'archived' %}selected{% endif %}>بایگانی</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label class="flex items-center">
-                    <input type="checkbox" name="is_available" {% if not product or product.is_available %}checked{% endif %}
-                           class="ml-2">
-                    <span class="text-gray-700">موجود است</span>
-                </label>
-            </div>
-            <div class="flex gap-4">
-                
-        {% if product %}
-        <div class="mt-6 p-4 bg-emerald-50 rounded-xl border-2 border-emerald-200">
-            <h3 class="font-bold text-lg mb-3 text-emerald-800">🎨 مدیریت تنوع و مشخصات</h3>
-            <div class="flex flex-wrap gap-3">
-                <a href="/admin/products/{{ product.id }}/variants" class="bg-emerald-600 text-white px-5 py-3 rounded-lg hover:bg-emerald-700 transition font-semibold inline-flex items-center gap-2">
-                    <i class="fas fa-palette"></i> مدیریت رنگ‌ها
-                </a>
-                <a href="/admin/products/{{ product.id }}/specifications" class="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition font-semibold inline-flex items-center gap-2">
-                    <i class="fas fa-table"></i> مدیریت مشخصات فنی
-                </a>
+
+                <!-- وضعیت -->
+                <div class="bg-gray-50 p-5 rounded-2xl border border-gray-200 space-y-3">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="is_active" value="1" {% if not product or product.is_active %}checked{% endif %} class="w-5 h-5 text-emerald-600 rounded">
+                        <span class="text-sm font-medium text-gray-700">منتشر شده</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="in_stock" value="1" {% if not product or product.in_stock %}checked{% endif %} class="w-5 h-5 text-emerald-600 rounded">
+                        <span class="text-sm font-medium text-gray-700">موجود است</span>
+                    </label>
+                </div>
             </div>
         </div>
-        {% endif %}
 
-        <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
-                    <i class="fas fa-save ml-2"></i> {% if product %}ویرایش{% else %}افزودن{% endif %}
+        <!-- توضیحات -->
+        <div>
+            <label class="block text-sm font-semibold mb-2 text-gray-700">توضیحات محصول</label>
+            <textarea name="description" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500">{{ product.description if product else '' }}</textarea>
+        </div>
+
+        <!-- دکمه‌های ذخیره -->
+        <div class="flex gap-4 pt-6 border-t">
+            <button type="submit" class="bg-emerald-600 text-white px-8 py-3 rounded-xl hover:bg-emerald-700 transition font-bold text-lg shadow-md flex-1">
+                <i class="fas fa-save ml-2"></i> ثبت و ذخیره محصول
+            </button>
+            <a href="/admin/products" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-xl hover:bg-gray-300 transition font-bold text-lg text-center flex items-center justify-center">
+                انصراف
+            </a>
+        </div>
+    </form>
+
+    <!-- ===== گالری تصاویر (کاملاً خارج از فرم اصلی) ===== -->
+    {% if product %}
+    <div class="mt-8 bg-white p-6 rounded-2xl border border-gray-200">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-images text-emerald-600"></i>
+            گالری تصاویر محصول
+        </h3>
+        
+        <!-- فرم آپلود گالری -->
+        <form action="/admin/products/{{ product.id }}/gallery/upload" method="POST" enctype="multipart/form-data" class="mb-6">
+            <div class="border-2 border-dashed border-emerald-300 rounded-xl p-6 text-center bg-emerald-50">
+                <i class="fas fa-cloud-upload-alt text-4xl text-emerald-500 mb-2"></i>
+                <p class="text-sm text-gray-600 mb-4">می‌توانید چندین عکس را همزمان انتخاب کنید</p>
+                <input type="file" name="gallery_images" multiple accept="image/*" required 
+                       class="w-full max-w-md mx-auto block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 mb-4">
+                <button type="submit" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition font-semibold">
+                    <i class="fas fa-upload ml-2"></i> آپلود عکس‌ها به گالری
                 </button>
-                <a href="/admin/products" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition">
-                    <i class="fas fa-times ml-2"></i> انصراف
-                </a>
             </div>
         </form>
+
+        <!-- نمایش عکس‌های گالری -->
+        {% if product.gallery_images %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {% for img in product.gallery_images %}
+            <div class="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                <img src="{{ img.image_url }}" alt="گالری" class="w-full h-32 object-cover">
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all flex items-center justify-center gap-2">
+                    <a href="{{ img.image_url }}" target="_blank" class="text-white opacity-0 group-hover:opacity-100 bg-blue-600 p-2 rounded-lg" title="مشاهده">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <form action="/admin/gallery-image/{{ img.id }}/delete" method="POST" onsubmit="return confirm('حذف شود؟')" class="inline">
+                        <button type="submit" class="text-white opacity-0 group-hover:opacity-100 bg-red-600 p-2 rounded-lg" title="حذف">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-500 text-center py-4">هنوز عکسی به گالری اضافه نشده است.</p>
+        {% endif %}
     </div>
+    {% endif %}
 </div>
 
-
-
-
-
-
-
 <script>
-function formatPrice(el) {
-    el.addEventListener('keyup', function() {
-        var val = this.value.replace(/,/g, '');
-        if (val.length > 3) {
-            var parts = [];
-            while (val.length > 3) {
-                parts.unshift(val.slice(-3));
-                val = val.slice(0, val.length - 3);
-            }
-            parts.unshift(val);
-            this.value = parts.join(',');
+    document.getElementById('image').addEventListener('change', function(e) {
+        var fileName = e.target.files[0] ? e.target.files[0].name : '';
+        var nameDisplay = document.getElementById('file-name');
+        if (fileName) {
+            nameDisplay.textContent = '✅ فایل انتخاب شد: ' + fileName;
+            nameDisplay.classList.remove('hidden');
         } else {
-            this.value = val;
+            nameDisplay.classList.add('hidden');
         }
     });
-}
-formatPrice(document.querySelector('input[name="price"]'));
-formatPrice(document.querySelector('input[name="discount_price"]'));
 </script>
-
 {% endblock %}
-
-
-

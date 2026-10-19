@@ -1,6 +1,71 @@
 ﻿{% extends "base.html" %}
 
-{% block title %}جزئیات سفارش - پریما استور{% endblock %}
+{% block title %}جزئیات سفارش - پریما استور
+    <!-- ===== اطلاعات پرداخت ===== -->
+    <div class="mt-8 bg-emerald-50 rounded-xl p-6 border-2 border-emerald-200">
+        <h3 class="text-lg font-bold text-emerald-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-credit-card"></i>
+            اطلاعات پرداخت
+        </h3>
+        
+        <div class="space-y-4">
+            <!-- شماره کارت -->
+            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                <p class="text-sm text-gray-500 mb-1">شماره کارت</p>
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                        <p class="text-xl font-bold text-gray-800 tracking-wider" dir="ltr">6219861862220273</p>
+                        <p class="text-sm text-emerald-600 font-semibold mt-1">به نام: مسعود کریمیان مهربان</p>
+                    </div>
+                    <button onclick="copyToClipboard('6219861862220273')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                        <i class="fas fa-copy"></i>
+                        <span>کپی</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- آیدی -->
+            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                <p class="text-sm text-gray-500 mb-1">آیدی برای ارسال فیش</p>
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <p class="text-xl font-bold text-gray-800" dir="ltr">@prima3dstore</p>
+                    <button onclick="copyToClipboard('prima3dstore')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                        <i class="fas fa-copy"></i>
+                        <span>کپی</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- دکمه‌های بله و تلگرام -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <a href="https://ble.ir/prima3dstore" target="_blank" class="flex items-center justify-center gap-2 bg-emerald-500 text-white px-4 py-3 rounded-lg hover:bg-emerald-600 transition font-semibold">
+                    <i class="fas fa-comments text-lg"></i>
+                    ارسال فیش در بله
+                </a>
+                <a href="https://t.me/prima3dstore" target="_blank" class="flex items-center justify-center gap-2 bg-sky-500 text-white px-4 py-3 rounded-lg hover:bg-sky-600 transition font-semibold">
+                    <i class="fab fa-telegram text-lg"></i>
+                    ارسال فیش در تلگرام
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300';
+                toast.innerHTML = '<i class="fas fa-check-circle text-emerald-400 ml-2"></i> کپی شد!';
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2000);
+            });
+        }
+    </script>
+    
+{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
@@ -61,6 +126,71 @@
         <i class="fas fa-arrow-right ml-2"></i> بازگشت به پروفایل
     </a>
 </div>
+
+    <!-- ===== اطلاعات پرداخت ===== -->
+    <div class="mt-8 bg-emerald-50 rounded-xl p-6 border-2 border-emerald-200">
+        <h3 class="text-lg font-bold text-emerald-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-credit-card"></i>
+            اطلاعات پرداخت
+        </h3>
+        
+        <div class="space-y-4">
+            <!-- شماره کارت -->
+            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                <p class="text-sm text-gray-500 mb-1">شماره کارت</p>
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                        <p class="text-xl font-bold text-gray-800 tracking-wider" dir="ltr">6219861862220273</p>
+                        <p class="text-sm text-emerald-600 font-semibold mt-1">به نام: مسعود کریمیان مهربان</p>
+                    </div>
+                    <button onclick="copyToClipboard('6219861862220273')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                        <i class="fas fa-copy"></i>
+                        <span>کپی</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- آیدی -->
+            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                <p class="text-sm text-gray-500 mb-1">آیدی برای ارسال فیش</p>
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <p class="text-xl font-bold text-gray-800" dir="ltr">@prima3dstore</p>
+                    <button onclick="copyToClipboard('prima3dstore')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                        <i class="fas fa-copy"></i>
+                        <span>کپی</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- دکمه‌های بله و تلگرام -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <a href="https://ble.ir/prima3dstore" target="_blank" class="flex items-center justify-center gap-2 bg-emerald-500 text-white px-4 py-3 rounded-lg hover:bg-emerald-600 transition font-semibold">
+                    <i class="fas fa-comments text-lg"></i>
+                    ارسال فیش در بله
+                </a>
+                <a href="https://t.me/prima3dstore" target="_blank" class="flex items-center justify-center gap-2 bg-sky-500 text-white px-4 py-3 rounded-lg hover:bg-sky-600 transition font-semibold">
+                    <i class="fab fa-telegram text-lg"></i>
+                    ارسال فیش در تلگرام
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300';
+                toast.innerHTML = '<i class="fas fa-check-circle text-emerald-400 ml-2"></i> کپی شد!';
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2000);
+            });
+        }
+    </script>
+    
 {% endblock %}
 
 

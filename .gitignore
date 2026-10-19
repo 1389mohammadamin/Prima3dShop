@@ -1,0 +1,16 @@
+﻿__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+ven/
+env/
+.env
+*.db
+*.sqlite
+*.sqlite3
+instance/
+flask_session/
+node_modules/
+.DS_Store
+Thumbs.db
