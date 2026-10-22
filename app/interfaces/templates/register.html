@@ -1,0 +1,50 @@
+﻿{% extends "base.html" %}
+{% block title %}ثبت‌نام - پریما استور{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mt-10">
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
+            <i class="fas fa-user-plus text-3xl text-emerald-600"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900">ایجاد حساب کاربری</h2>
+        <p class="mt-2 text-sm text-gray-500">برای خرید و پیگیری سفارشات ثبت‌نام کنید</p>
+    </div>
+
+    <form action="/auth/register" method="POST" class="space-y-5">
+        <div>
+            <label class="block text-sm font-semibold mb-2 text-gray-700">نام کاربری</label>
+            <input type="text" name="username" required placeholder="نام کاربری خود را وارد کنید" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold mb-2 text-gray-700">ایمیل</label>
+            <input type="email" name="email" required placeholder="example@email.com" dir="ltr"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition text-left">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold mb-2 text-gray-700">رمز عبور</label>
+            <input type="password" name="password" required placeholder="رمز عبور خود را وارد کنید" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold mb-2 text-gray-700">تکرار رمز عبور</label>
+            <input type="password" name="confirm_password" required placeholder="رمز عبور را دوباره وارد کنید" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition">
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-xl hover:bg-emerald-700 transition font-bold text-lg shadow-md mt-4">
+            ثبت‌نام
+        </button>
+    </form>
+
+    <div class="text-center mt-6 pt-6 border-t border-gray-100">
+        <p class="text-sm text-gray-500">
+            قبلاً ثبت‌نام کرده‌اید؟ 
+            <a href="/auth/login" class="font-semibold text-emerald-600 hover:text-emerald-500">وارد شوید</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
