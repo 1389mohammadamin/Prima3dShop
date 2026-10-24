@@ -1,5 +1,37 @@
 {% extends "base.html" %}
-{% block title %}{% if product %}ویرایش {{ product.name }}{% else %}افزودن محصول جدید{% endif %} - پریما استور{% endblock %}
+{% block title %}{% if product %}ویرایش {{ product.name }}{% else %}افزودن محصول جدید{% endif %} - پریما استور
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var priceInputs = document.querySelectorAll('input[name="price"], input[name="discount_price"]');
+        
+        priceInputs.forEach(function(input) {
+            // مقداردهی اولیه: اگه مقدار داره، با کاما نمایش بده
+            if (input.value) {
+                let val = input.value.replace(/[^0-9]/g, '');
+                if (val) {
+                    input.value = val.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+            }
+
+            input.addEventListener('input', function(e) {
+                // حذف هر چیزی غیر از عدد
+                let value = this.value.replace(/[^0-9]/g, '');
+                
+                // اضافه کردن کاما
+                if (value) {
+                    this.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                } else {
+                    this.value = '';
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}
 
 {% block content %}
 <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -30,7 +62,7 @@
                 <div>
                     <label class="block text-sm font-semibold mb-2 text-gray-700">قیمت (تومان) *</label>
                     <input type="text" name="price" value="{{ product.price if product else '' }}" required 
-                           onkeyup="this.value = this.value.replace(/[^0-9]/g, '').replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',')"
+                           
                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500" dir="ltr">
                 </div>
 
@@ -38,7 +70,7 @@
                     <div>
                         <label class="block text-sm font-semibold mb-2 text-gray-700">قیمت با تخفیف</label>
                         <input type="text" name="discount_price" value="{{ product.discount_price if product else '' }}" 
-                               onkeyup="this.value = this.value.replace(/[^0-9]/g, '').replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',')"
+                               
                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500" dir="ltr">
                     </div>
                     <div>
@@ -150,4 +182,36 @@
         }
     });
 </script>
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var priceInputs = document.querySelectorAll('input[name="price"], input[name="discount_price"]');
+        
+        priceInputs.forEach(function(input) {
+            // مقداردهی اولیه: اگه مقدار داره، با کاما نمایش بده
+            if (input.value) {
+                let val = input.value.replace(/[^0-9]/g, '');
+                if (val) {
+                    input.value = val.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+            }
+
+            input.addEventListener('input', function(e) {
+                // حذف هر چیزی غیر از عدد
+                let value = this.value.replace(/[^0-9]/g, '');
+                
+                // اضافه کردن کاما
+                if (value) {
+                    this.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                } else {
+                    this.value = '';
+                }
+            });
+        });
+    });
+</script>
+
 {% endblock %}
