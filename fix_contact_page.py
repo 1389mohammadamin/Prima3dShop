@@ -1,0 +1,127 @@
+﻿contact_path = 'app/interfaces/templates/contact.html'
+
+html_content = '''{% extends "base.html" %}
+
+{% block title %}تماس با ما - پریما استور{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto mt-8">
+    <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">تماس با ما</h1>
+        <p class="text-gray-500">ما همیشه آماده شنیدن نظرات، پیشنهادات و پاسخ به سوالات شما هستیم.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- ستون اول: اطلاعات تماس -->
+        <div class="space-y-4">
+            <!-- شماره تماس -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center gap-4 hover:border-emerald-200 transition">
+                <div class="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 shrink-0">
+                    <i class="fas fa-phone-alt text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm text-gray-500 mb-1">شماره پشتیبانی</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xl font-bold text-gray-800" dir="ltr">09945553206</span>
+                        <button onclick="copyToClipboard('09945553206')" class="text-gray-400 hover:text-emerald-600 p-2 rounded-lg hover:bg-emerald-50 transition" title="کپی">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ایمیل -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center gap-4 hover:border-emerald-200 transition">
+                <div class="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 shrink-0">
+                    <i class="fas fa-envelope text-2xl"></i>
+                </div>
+                <div class="flex-1 overflow-hidden">
+                    <p class="text-sm text-gray-500 mb-1">ایمیل</p>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm sm:text-base font-bold text-gray-800 truncate" dir="ltr">PrimaStore@vatanmail.ir</span>
+                        <button onclick="copyToClipboard('PrimaStore@vatanmail.ir')" class="text-gray-400 hover:text-emerald-600 p-2 rounded-lg hover:bg-emerald-50 transition shrink-0" title="کپی">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- آیدی تلگرام / بله -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center gap-4 hover:border-emerald-200 transition">
+                <div class="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 shrink-0">
+                    <i class="fab fa-telegram-plane text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm text-gray-500 mb-1">آیدی پیام‌رسان (بله و تلگرام)</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xl font-bold text-gray-800" dir="ltr">@prima3dstore</span>
+                        <button onclick="copyToClipboard('prima3dstore')" class="text-gray-400 hover:text-emerald-600 p-2 rounded-lg hover:bg-emerald-50 transition" title="کپی">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- شبکه‌های اجتماعی -->
+            <div class="bg-emerald-600 rounded-2xl shadow-sm p-6 text-white text-center mt-6">
+                <h3 class="font-bold mb-3">ما را در شبکه‌های اجتماعی دنبال کنید</h3>
+                <div class="flex justify-center gap-4">
+                    <a href="https://ble.ir/prima3dstore" target="_blank" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"><i class="fas fa-comments text-xl"></i></a>
+                    <a href="https://t.me/prima3dstore" target="_blank" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"><i class="fab fa-telegram text-xl"></i></a>
+                    <a href="#" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"><i class="fab fa-instagram text-xl"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ستون دوم: فرم تماس -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-3">ارسال پیام</h2>
+            <form action="/contact" method="POST" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">نام و نام خانوادگی *</label>
+                    <input type="text" name="name" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">ایمیل یا شماره تماس *</label>
+                    <input type="text" name="contact" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">پیام شما *</label>
+                    <textarea name="message" rows="5" required 
+                              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 transition"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-paper-plane"></i> ارسال پیام
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // ساخت نوتیفیکیشن
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-xl shadow-lg z-50 transition-opacity duration-300 flex items-center gap-2';
+            toast.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-xl"></i> با موفقیت کپی شد!';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }).catch(err => {
+            alert('خطا در کپی کردن: ' + err);
+        });
+    }
+</script>
+{% endblock %}
+'''
+
+with open(contact_path, 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("✅ صفحه تماس با ما (contact.html) کاملاً بازنویسی شد!")

@@ -459,6 +459,23 @@ def admin_specification_delete(spec_id):
     
     return redirect(url_for('admin_product_specifications', product_id=product_id))
 
+
+# ===== صفحه تماس با ما =====
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        contact_info = request.form.get('contact')
+        message = request.form.get('message')
+        
+        # اینجا می‌تونید پیام رو توی دیتابیس ذخیره کنید یا ایمیل بفرستید
+        # فعلاً فقط یه پیام موفقیت نشون می‌دیم
+        flash(f'✅ پیام شما با موفقیت دریافت شد. {name} عزیز، به زودی با شما تماس می‌گیریم.', 'success')
+        return redirect(url_for('contact'))
+        
+    return render_template('contact.html')
+
+
 def create_app():
     return app
 
