@@ -1,85 +1,93 @@
 ﻿{% extends "base.html" %}
-{% block title %}مدیریت تنوع‌های {{ product.name }} - PrimaStore{% endblock %}
+{% block title %}مدیریت رنگ‌های {{ product.name }} - پریما استور{% endblock %}
+
 {% block content %}
-<div class="bg-white rounded-lg shadow p-6 max-w-4xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
+<div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+    <div class="flex justify-between items-center mb-8 border-b pb-4">
         <div>
-            <h1 class="text-2xl font-bold">🎨 مدیریت رنگ‌های {{ product.name }}</h1>
-            <a href="/admin/products" class="text-emerald-600 hover:text-emerald-800 text-sm">← بازگشت به محصولات</a>
+            <h1 class="text-2xl font-bold text-gray-800">🎨 مدیریت رنگ‌های {{ product.name }}</h1>
+            <a href="/admin/products/edit/{{ product.id }}" class="text-emerald-600 hover:text-emerald-800 text-sm mt-1 inline-block">
+                <i class="fas fa-arrow-right ml-1"></i> بازگشت به ویرایش محصول
+            </a>
         </div>
     </div>
 
-    <!-- فرم افزودن رنگ -->
-    <div class="bg-gray-50 p-6 rounded-xl border mb-6">
-        <h3 class="font-bold mb-4 text-lg">➕ افزودن رنگ جدید</h3>
+    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-8">
+        <h3 class="font-bold mb-4 text-gray-800">➕ افزودن رنگ جدید به این محصول</h3>
+        
         <form action="/admin/products/{{ product.id }}/variants/create" method="POST">
             <input type="hidden" name="name" value="رنگ">
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <input type="hidden" name="value" id="hiddenColorValue" value="">
+            <input type="hidden" name="color_code" id="hiddenColorCode" value="">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-600">نام رنگ *</label>
-                    <input type="text" name="value" placeholder="مثلاً: قرمز, آبی, سبز" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500">
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">انتخاب رنگ *</label>
+                    <select id="colorSelect" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 bg-white">
+                        <option value="" disabled selected>یک رنگ انتخاب کنید...</option>
+                        {% for color in colors %}
+                        <option value="{{ color.name }}" data-color-code="{{ color.color_code }}">{{ color.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
+                
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-600">کد رنگ</label>
-                    <div class="flex items-center gap-2">
-                        <input type="color" name="color_code" value="#16a34a" class="w-14 h-12 border border-gray-300 rounded-lg cursor-pointer">
-                        <input type="text" name="color_code_manual" placeholder="#HEX" class="flex-1 px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-emerald-500">
-                    </div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">تغییر قیمت (تومان)</label>
+                    <input type="number" name="price_adjustment" placeholder="۰" step="1000" value="0" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 bg-white">
                 </div>
+                
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-600">تغییر قیمت (تومان)</label>
-                    <input type="number" name="price_adjustment" placeholder="۰" step="1000" value="0" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500">
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">موجودی *</label>
+                    <input type="number" name="quantity" placeholder="تعداد" min="0" value="1" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 bg-white">
                 </div>
+    
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-600">موجودی *</label>
-                    <input type="number" name="quantity" placeholder="تعداد" min="0" value="1" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-600">SKU *</label>
-                    <input type="text" name="sku" placeholder="کد یکتا" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500">
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">SKU *</label>
+                    <input type="text" name="sku" placeholder="کد یکتا" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 bg-white">
                 </div>
             </div>
-
-            <button type="submit" class="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition font-semibold">
-                <i class="fas fa-plus ml-2"></i> افزودن رنگ
+            
+            <button type="submit" class="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition font-bold shadow-md">
+                <i class="fas fa-plus ml-2"></i> افزودن به محصول
             </button>
         </form>
     </div>
 
-    <!-- لیست رنگ‌ها -->
-    <div class="bg-white rounded-xl border overflow-hidden">
-        <table class="w-full">
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table class="w-full text-right">
             <thead>
-                <tr class="bg-gray-50">
-                    <th class="px-6 py-3 text-right text-sm font-semibold text-gray-600">رنگ</th>
-                    <th class="px-6 py-3 text-right text-sm font-semibold text-gray-600">نام</th>
-                    <th class="px-6 py-3 text-right text-sm font-semibold text-gray-600">تغییر قیمت</th>
-                    <th class="px-6 py-3 text-right text-sm font-semibold text-gray-600">موجودی</th>
-                    <th class="px-6 py-3 text-right text-sm font-semibold text-gray-600">SKU</th>
-                    <th class="px-6 py-3 text-right text-sm font-semibold text-gray-600">عملیات</th>
+                <tr class="bg-gray-50 text-gray-600 text-sm">
+                    <th class="px-6 py-4 font-semibold">رنگ</th>
+                    <th class="px-6 py-4 font-semibold">تغییر قیمت</th>
+                    <th class="px-6 py-4 font-semibold">موجودی</th>
+                    <th class="px-6 py-4 font-semibold">SKU</th>
+                    <th class="px-6 py-4 font-semibold text-center">عملیات</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="text-sm divide-y divide-gray-100">
                 {% for variant in variants %}
-                <tr class="border-b hover:bg-gray-50">
+                <tr class="hover:bg-gray-50 transition">
                     <td class="px-6 py-4">
-                        <span class="inline-block w-10 h-10 rounded-full border-2 border-gray-300 shadow-inner" style="background-color: {{ variant.color_code or '#cccccc' }};"></span>
+                        <div class="flex items-center gap-3">
+                            <span class="inline-block w-8 h-8 rounded-full border-2 border-gray-200 shadow-inner" style="background-color: {{ variant.color_code or '#ccc' }};"></span>
+                            <span class="font-bold text-gray-800">{{ variant.value }}</span>
+                        </div>
                     </td>
-                    <td class="px-6 py-4 font-semibold">{{ variant.value }}</td>
-                    <td class="px-6 py-4">{{ variant.price_adjustment|format_currency }}</td>
-                    <td class="px-6 py-4">{{ variant.quantity }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">{{ variant.sku }}</td>
-                    <td class="px-6 py-4">
-                        <form action="/admin/variants/{{ variant.id }}/delete" method="POST" onsubmit="return confirm('حذف شود؟')" class="inline">
-                                            <button type="submit" class="text-red-500 hover:text-red-700 font-semibold">✕ حذف</button>
+                    <td class="px-6 py-4 text-gray-600">{{ variant.price_adjustment|format_currency }}</td>
+                    <td class="px-6 py-4 text-gray-600">{{ variant.quantity }}</td>
+                    <td class="px-6 py-4 text-gray-500 font-mono" dir="ltr">{{ variant.sku }}</td>
+                    <td class="px-6 py-4 text-center">
+                        <form action="/admin/variants/{{ variant.id }}/delete" method="POST" class="inline" onsubmit="return confirm('آیا از حذف این رنگ مطمئن هستید؟')">
+                            <button type="submit" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </form>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-400">
-                        هنوز رنگی اضافه نشده است. از فرم بالا استفاده کن!
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-400">
+                        هنوز رنگی برای این محصول اضافه نشده است.
                     </td>
                 </tr>
                 {% endfor %}
@@ -88,15 +96,21 @@
     </div>
 </div>
 
-<!-- اسکریپت همگام‌سازی Color Picker -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var colorPicker = document.querySelector('input[type="color"][name="color_code"]');
-        var manualInput = document.querySelector('input[name="color_code_manual"]');
-        if (colorPicker && manualInput) {
-            colorPicker.addEventListener('input', function() { manualInput.value = this.value; });
-            manualInput.addEventListener('input', function() {
-                if (this.value.match(/^#[0-9a-fA-F]{6}$/)) { colorPicker.value = this.value; }
+        var colorSelect = document.getElementById('colorSelect');
+        var hiddenColorCode = document.getElementById('hiddenColorCode');
+        var hiddenColorValue = document.getElementById('hiddenColorValue');
+        
+        if (colorSelect) {
+            colorSelect.addEventListener('change', function() {
+                var selectedOption = this.options[this.selectedIndex];
+                if (selectedOption) {
+                    // کد رنگ رو ست کن
+                    hiddenColorCode.value = selectedOption.getAttribute('data-color-code');
+                    // اسم رنگ رو هم ست کن
+                    hiddenColorValue.value = selectedOption.value;
+                }
             });
         }
     });

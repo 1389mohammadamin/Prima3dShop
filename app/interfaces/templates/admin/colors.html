@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}مدیریت رنگ‌ها - پریما استور{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+    <div class="flex justify-between items-center mb-8 border-b pb-4">
+        <h1 class="text-2xl font-bold text-gray-800">🎨 مدیریت رنگ‌های سراسری</h1>
+        <a href="/admin/products" class="text-gray-500 hover:text-emerald-600 transition text-sm"><i class="fas fa-arrow-right"></i> بازگشت</a>
+    </div>
+
+    <!-- فرم افزودن رنگ -->
+    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-8">
+        <h3 class="font-bold mb-4">افزودن رنگ جدید به لیست</h3>
+        <form method="POST" class="flex flex-col md:flex-row gap-4 items-end">
+            <div class="flex-1 w-full">
+                <label class="block text-sm font-semibold mb-2 text-gray-700">نام رنگ *</label>
+                <input type="text" name="name" placeholder="مثلاً: قرمز، آبی" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500">
+            </div>
+            <div class="w-full md:w-48">
+                <label class="block text-sm font-semibold mb-2 text-gray-700">کد رنگ *</label>
+                <input type="color" name="color_code" value="#10b981" class="w-full h-[50px] p-1 border border-gray-300 rounded-xl cursor-pointer bg-white">
+            </div>
+            <button type="submit" class="w-full md:w-auto bg-emerald-600 text-white px-8 py-3 rounded-xl hover:bg-emerald-700 transition font-bold shadow-md">
+                <i class="fas fa-plus ml-2"></i> افزودن
+            </button>
+        </form>
+    </div>
+
+    <!-- لیست رنگ‌ها -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {% for color in colors %}
+        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition">
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-full border border-gray-200 shadow-inner" style="background-color: {{ color.color_code }};"></span>
+                <div>
+                    <p class="font-bold text-gray-800">{{ color.name }}</p>
+                    <p class="text-xs text-gray-500 font-mono" dir="ltr">{{ color.color_code }}</p>
+                </div>
+            </div>
+            <form action="/admin/colors/{{ color.id }}/delete" method="POST" onsubmit="return confirm('حذف شود؟')">
+                <button type="submit" class="text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition"><i class="fas fa-trash-alt"></i></button>
+            </form>
+        </div>
+        {% else %}
+        <div class="col-span-full text-center py-8 text-gray-500">هنوز رنگی تعریف نشده است.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -476,6 +476,62 @@ def contact():
     return render_template('contact.html')
 
 
+
+# ===== مدل رنگ‌های سراسری =====
+class Color(db.Model):
+    __tablename__ = 'colors'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    color_code = db.Column(db.String(20), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+
+# ===== مدیریت رنگ‌های سراسری =====
+@app.route('/admin/colors', methods=['GET', 'POST'])
+@login_required
+def admin_colors():
+    if not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        name = request.form.get('name')
+        color_code = request.form.get('color_code')
+        
+        if name and color_code:
+            try:
+                new_color = Color(name=name, color_code=color_code)
+                db.session.add(new_color)
+                db.session.commit()
+                flash('✅ رنگ جدید با موفقیت اضافه شد!', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash('خطا: این رنگ از قبل وجود دارد!', 'error')
+        else:
+            flash('نام و کد رنگ الزامی است!', 'error')
+            
+        return redirect(url_for('admin_colors'))
+        
+    colors = Color.query.order_by(Color.name).all()
+    return render_template('admin/colors.html', colors=colors)
+
+@app.route('/admin/colors/<int:color_id>/delete', methods=['POST'])
+@login_required
+def admin_color_delete(color_id):
+    if not current_user.is_admin:
+        return redirect(url_for('index'))
+    
+    color = Color.query.get_or_404(color_id)
+    try:
+        db.session.delete(color)
+        db.session.commit()
+        flash('✅ رنگ حذف شد!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطا: {str(e)}', 'error')
+        
+    return redirect(url_for('admin_colors'))
+
 def create_app():
     return app
 
@@ -1650,7 +1706,9 @@ def admin_product_variants(product_id):
         return redirect(url_for('index'))
     product = Product.query.get_or_404(product_id)
     variants = ProductVariant.query.filter_by(product_id=product_id).all()
-    return render_template('admin/variants.html', product=product, variants=variants)
+    # گرفتن لیست همه رنگ‌های سراسری
+    colors = Color.query.order_by(Color.name).all()
+    return render_template('admin/variants.html', product=product, variants=variants, colors=colors)
 
 @app.route('/admin/products/<int:product_id>/variants/create', methods=['POST'])
 @login_required
