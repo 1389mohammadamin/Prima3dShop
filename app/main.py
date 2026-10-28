@@ -532,6 +532,24 @@ def admin_color_delete(color_id):
         
     return redirect(url_for('admin_colors'))
 
+
+@app.route('/admin/order/<int:order_id>/update-status', methods=['POST'])
+@login_required
+def admin_order_update_status(order_id):
+    if not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+    
+    order = Order.query.get_or_404(order_id)
+    new_status = request.form.get('status')
+    
+    if new_status:
+        order.status = new_status
+        db.session.commit()
+        flash('✅ وضعیت سفارش با موفقیت تغییر کرد!', 'success')
+    
+    return redirect(url_for('admin_order_detail', order_id=order.id))
+
 def create_app():
     return app
 
@@ -1235,9 +1253,37 @@ def admin_orders():
     if not current_user.is_admin:
         flash('دسترسی غیرمجاز!', 'error')
         return redirect(url_for('index'))
-    
-    orders = Order.query.order_by(Order.created_at.desc()).all()
+    # فقط سفارشات در انتظار، پرداخت شده و در حال تایید
+    active_statuses = ['pending', 'paid', 'pending_confirmation']
+    orders = Order.query.filter(Order.status.in_(active_statuses)).order_by(Order.created_at.desc()).all()
     return render_template('admin/orders.html', orders=orders)
+
+@app.route('/admin/orders/archive')
+@login_required
+def admin_orders_archive():
+    if not current_user.is_admin:
+        flash('دسترسی غیرمجاز!', 'error')
+        return redirect(url_for('index'))
+    # سفارشات بایگانی شده
+    archived_statuses = ['shipped', 'delivered', 'cancelled']
+    orders = Order.query.filter(Order.status.in_(archived_statuses)).order_by(Order.created_at.desc()).all()
+    return render_template('admin/orders_archive.html', orders=orders)
+
+@app.route('/admin/orders/<int:order_id>/force-delete', methods=['POST'])
+@login_required
+def admin_order_force_delete(order_id):
+    if not current_user.is_admin:
+        return redirect(url_for('index'))
+    order = Order.query.get_or_404(order_id)
+    try:
+        # آیتم‌های سفارش هم به صورت خودکار با cascade پاک میشن
+        db.session.delete(order)
+        db.session.commit()
+        flash('✅ سفارش برای همیشه حذف شد!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطا در حذف سفارش: {str(e)}', 'error')
+    return redirect(url_for('admin_orders_archive'))
 
 @app.route('/admin/order/<int:order_id>')
 @login_required
