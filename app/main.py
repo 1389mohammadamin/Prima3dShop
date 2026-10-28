@@ -66,6 +66,15 @@ class Product(db.Model):
     view_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+    # روابط برای حذف آبشاری
+
+
+    # روابط برای حذف آبشاری (Cascade Delete)
+    variants = db.relationship('ProductVariant', back_populates='product', cascade='all, delete-orphan')
+    specifications = db.relationship('ProductSpecification', back_populates='product', cascade='all, delete-orphan')
+    gallery_images = db.relationship('ProductImage', back_populates='product', cascade='all, delete-orphan')
+
+
 class Order(db.Model):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
@@ -101,7 +110,7 @@ class ProductVariant(db.Model):
     sku = db.Column(db.String(100), unique=True, nullable=False)
     image_url = db.Column(db.String(300), nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    product = db.relationship('Product', backref='variants')
+    product = db.relationship('Product', back_populates='variants')
 
 
 
@@ -113,7 +122,7 @@ class ProductSpecification(db.Model):
     spec_value = db.Column(db.String(200), nullable=False)
     display_order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    product = db.relationship('Product', backref='specifications')
+    product = db.relationship('Product', back_populates='specifications')
 
 
 # ===== صفحه پرداخت =====
@@ -330,7 +339,7 @@ class ProductImage(db.Model):
     image_url = db.Column(db.String(300), nullable=False)
     display_order = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    product = db.relationship('Product', backref=db.backref('gallery_images', cascade='all, delete-orphan'))
+    product = db.relationship('Product', back_populates='gallery_images')
 
 
 # ===== روت‌های گالری تصاویر =====
@@ -549,6 +558,12 @@ def admin_order_update_status(order_id):
         flash('✅ وضعیت سفارش با موفقیت تغییر کرد!', 'success')
     
     return redirect(url_for('admin_order_detail', order_id=order.id))
+
+
+# ===== مدل‌های محصولات =====
+
+
+
 
 def create_app():
     return app
